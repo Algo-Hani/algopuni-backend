@@ -1,0 +1,5 @@
+rootProject.name = 'algopuni'
+
+include 'module-common'
+include 'module-admin-api'
+include 'module-user-api'
