@@ -47,6 +47,25 @@ subprojects {
     test {
         useJUnitPlatform()
     }
+
+    // active profile 설정
+    ext.profile = (!project.hasProperty('profile') || !profile) ? 'dev' : profile
+
+    // resources 디렉토리 설정
+    sourceSets {
+        main {
+            resources {
+                srcDirs "src/main/resources", "src/main/resources-${profile}"
+            }
+        }
+    }
+
+    // resources 디렉토리 중복 파일 처리
+    tasks {
+        processResources {
+            duplicatesStrategy = DuplicatesStrategy.INCLUDE
+        }
+    }
 }
 
 project(':module-common') {

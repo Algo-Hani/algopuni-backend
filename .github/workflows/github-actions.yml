@@ -68,11 +68,11 @@ jobs:
             -   name: Build And Test
                 run: |
                     if [[ $USER_API_CHANGED == "true" ]]; then
-                        ./gradlew :module-user-api:clean :module-user-api:build
+                        ./gradlew :module-user-api:clean :module-user-api:build -Pprofile=prod
                     fi
                     
                     if [[ $ADMIN_API_CHANGED == "true" ]]; then
-                        ./gradlew :module-admin-api:clean :module-admin-api:build
+                        ./gradlew :module-admin-api:clean :module-admin-api:build -Pprofile=prod
                     fi
 
             -   name: Set up QEMU
