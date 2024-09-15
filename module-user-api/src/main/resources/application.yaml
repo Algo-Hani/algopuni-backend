@@ -1,1 +1,3 @@
-spring.application.name=module-user-api
+spring:
+    application:
+        name: module-user-api

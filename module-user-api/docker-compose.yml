@@ -1,0 +1,8 @@
+services:
+    user-api:
+        container_name: user-api
+        image: potatowoong/algohani:user-api
+        ports:
+            - "8081:8080"
+        volumes:
+            - /algopuni/user-api/logs:/logs

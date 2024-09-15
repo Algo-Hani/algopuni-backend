@@ -1,0 +1,8 @@
+services:
+    admin-api:
+        container_name: admin-api
+        image: potatowoong/algohani:admin-api
+        ports:
+            - "8080:8080"
+        volumes:
+            - /algopuni/admin-api/logs:/logs
