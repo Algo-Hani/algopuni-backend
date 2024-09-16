@@ -30,6 +30,9 @@ subprojects {
     }
 
     dependencies {
+        // Spring Data JPA
+        implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+
         // lombok
         compileOnly 'org.projectlombok:lombok'
         annotationProcessor 'org.projectlombok:lombok'
@@ -46,6 +49,7 @@ subprojects {
 
     test {
         useJUnitPlatform()
+        systemProperty "jasypt.encryptor.password", System.getProperty("jasypt.encryptor.password")
     }
 
     // active profile 설정
@@ -88,6 +92,12 @@ project(':module-admin-api') {
 
         // Spring Boot Web
         implementation 'org.springframework.boot:spring-boot-starter-web'
+
+        // MariaDB
+        runtimeOnly 'org.mariadb.jdbc:mariadb-java-client'
+
+        // Jasypt
+        implementation 'com.github.ulisesbocchio:jasypt-spring-boot-starter:3.0.5'
     }
 }
 
@@ -101,5 +111,11 @@ project(':module-user-api') {
 
         // Spring Boot Web
         implementation 'org.springframework.boot:spring-boot-starter-web'
+
+        // MariaDB
+        runtimeOnly 'org.mariadb.jdbc:mariadb-java-client'
+
+        // Jasypt
+        implementation 'com.github.ulisesbocchio:jasypt-spring-boot-starter:3.0.5'
     }
 }
