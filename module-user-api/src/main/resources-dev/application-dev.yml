@@ -2,3 +2,15 @@ spring:
     config:
         activate:
             on-profile: dev
+    jpa:
+        hibernate:
+            ddl-auto: update
+        properties:
+            hibernate:
+                format_sql: true
+                highlight_sql: true
+                show_sql: true
+    data:
+        redis:
+            port: 6379
+            host: localhost
