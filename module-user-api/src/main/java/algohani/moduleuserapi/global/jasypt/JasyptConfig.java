@@ -1,4 +1,4 @@
-package algohani.moduleuserapi.global;
+package algohani.moduleuserapi.global.jasypt;
 
 import org.jasypt.encryption.StringEncryptor;
 import org.jasypt.encryption.pbe.PooledPBEStringEncryptor;
