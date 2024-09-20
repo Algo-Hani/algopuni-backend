@@ -70,52 +70,11 @@ subprojects {
             duplicatesStrategy = DuplicatesStrategy.INCLUDE
         }
     }
-}
 
-project(':module-common') {
-    bootJar.enabled = false
-    jar.enabled = true
-
-    dependencies {
-        // Spring Boot
-        implementation 'org.springframework.boot:spring-boot-starter'
-    }
-}
-
-project(':module-admin-api') {
-    bootJar.enabled = true
-    jar.enabled = false
-
-    dependencies {
-        // module-common 모듈을 의존성으로 추가
-        implementation project(":module-common")
-
-        // Spring Boot Web
-        implementation 'org.springframework.boot:spring-boot-starter-web'
-
-        // MariaDB
-        runtimeOnly 'org.mariadb.jdbc:mariadb-java-client'
-
-        // Jasypt
-        implementation 'com.github.ulisesbocchio:jasypt-spring-boot-starter:3.0.5'
-    }
-}
-
-project(':module-user-api') {
-    bootJar.enabled = true
-    jar.enabled = false
-
-    dependencies {
-        // module-common 모듈을 의존성으로 추가
-        implementation project(":module-common")
-
-        // Spring Boot Web
-        implementation 'org.springframework.boot:spring-boot-starter-web'
-
-        // MariaDB
-        runtimeOnly 'org.mariadb.jdbc:mariadb-java-client'
-
-        // Jasypt
-        implementation 'com.github.ulisesbocchio:jasypt-spring-boot-starter:3.0.5'
+    // application.yml 파일에 프로퍼티 주입
+    processResources {
+        filesMatching('**/application.yml') {
+            expand(project.properties)
+        }
     }
 }
