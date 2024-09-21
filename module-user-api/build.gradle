@@ -1,5 +1,3 @@
-// 1. Import 추가
-
 import org.hidetake.gradle.swagger.generator.GenerateSwaggerUI
 
 plugins {
@@ -60,37 +58,40 @@ swaggerSources {
 // openapi3 스펙 생성 시 설정 정보
 openapi3 {
     servers = [
-            { url = 'http://localhost:8080' },
-            { url = 'https://api.user.algopuni.site' }
+            { url = 'https://api.user.algopuni.site' },
+            { url = 'http://localhost:8080' }
     ]
     title = "Algopuni User API"
     description = "Algopuni 사용자 API"
     version = "1.0.0"
     format = "yaml"
-    outputDirectory = 'build/resources/main/static/docs'
+
+    // 개발 환경에서는 build/resources/main/static/docs 디렉토리에 생성
+    if (profile == 'dev') {
+        outputDirectory = 'build/resources/main/static/docs'
+    }
 }
 
-// SwaggerUI 생성 시 설정 정보
+// GenerateSwaggerUI task가 실행되기 전에 openapi3 task를 실행
 tasks.withType(GenerateSwaggerUI).configureEach {
     dependsOn 'openapi3'
-    doFirst {
-        def swaggerUIFile = file("${openapi3.outputDirectory}/openapi3.yaml")
-        def securitySchemesContent = "  securitySchemes:\n" +                    \
-                                                        "    APIKey:\n" +                    \
-                                                        "      type: apiKey\n" +                    \
-                                                        "      name: Authorization\n" +                    \
-                                                        "      in: header\n" +                   \
-                                                        "security:\n" +
-                "  - APIKey: []  # Apply the security scheme here"
+}
 
-        swaggerUIFile.append securitySchemesContent
-    }
+// 생성된 SwaggerUI 파일을 resources/main/static/docs 디렉토리로 복사
+tasks.register('copySwaggerUI', Copy) {
+    dependsOn 'generateSwaggerUISample'
+
+    // 복사할 소스 파일 설정
+    from("${layout.buildDirectory.dir('api-spec/openapi3.yaml').get().asFile}")
+
+    // 대상 디렉토리 설정
+    into("${layout.buildDirectory.dir('resources/main/static/docs').get().asFile}")
 }
 
 bootJar {
-    // bootJar 작업 실행 전 generateSwaggerUISample 작업 실행
-    dependsOn generateSwaggerUISample
-    from("${generateSwaggerUISample.outputDir}") {
-        into "static/docs"
-    }
+    dependsOn 'copySwaggerUI'
+}
+
+tasks.resolveMainClassName {
+    dependsOn 'copySwaggerUI'
 }
