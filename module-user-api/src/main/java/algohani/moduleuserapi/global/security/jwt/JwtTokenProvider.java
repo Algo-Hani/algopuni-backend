@@ -94,7 +94,7 @@ public class JwtTokenProvider {
     /**
      * Access Token을 생성하는 메소드
      */
-    private AccessTokenDto generateAccessToken(Authentication authentication) {
+    public AccessTokenDto generateAccessToken(Authentication authentication) {
         String authorities = authentication.getAuthorities().stream()
             .map(GrantedAuthority::getAuthority)
             .collect(Collectors.joining(","));

@@ -7,7 +7,9 @@ import algohani.moduleuserapi.domain.auth.dto.request.SignUpReqDto;
 import algohani.moduleuserapi.domain.auth.dto.response.TokenDto.AccessTokenDto;
 import algohani.moduleuserapi.domain.auth.service.LoginService;
 import algohani.moduleuserapi.domain.auth.service.SignUpService;
+import algohani.moduleuserapi.domain.auth.service.TokenRefreshService;
 import algohani.moduleuserapi.global.dto.ResponseText;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -25,6 +27,8 @@ public class AuthController {
     private final SignUpService signUpService;
 
     private final LoginService loginService;
+
+    private final TokenRefreshService tokenRefreshService;
 
     /**
      * 이메일 인증 코드 전송 API
@@ -64,5 +68,15 @@ public class AuthController {
         AccessTokenDto accessTokenDto = loginService.login(loginReqDto, response);
 
         return ApiResponse.success(ResponseText.LOGIN_SUCCESS, accessTokenDto);
+    }
+
+    /**
+     * Access Token 갱신 API
+     */
+    @PostMapping("/refresh")
+    public ResponseEntity<ApiResponse<AccessTokenDto>> refresh(HttpServletRequest request) {
+        AccessTokenDto accessTokenDto = tokenRefreshService.refresh(request);
+
+        return ApiResponse.success(ResponseText.ACCESS_TOKEN_REFRESHED, accessTokenDto);
     }
 }

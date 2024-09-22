@@ -26,6 +26,7 @@ public class SecurityConfig {
         "/api/v1/auth/signup",
         "/api/v1/auth/email-verification/**",
         "/api/v1/auth/login",
+        "/api/v1/auth/refresh",
         "/docs/swagger-ui/**",
         "/docs/openapi3.yaml",
         "/v3/api-docs/swagger-config"
@@ -58,7 +59,6 @@ public class SecurityConfig {
         // 인증 및 권한 설정
         http.authorizeHttpRequests(authorizeRequests -> authorizeRequests
             .requestMatchers(PERMIT_ALL).permitAll()
-            .requestMatchers("/api/v1/auth/signup").hasRole("ADMIN")
             .anyRequest().authenticated()
         );
 

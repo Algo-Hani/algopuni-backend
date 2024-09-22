@@ -2,6 +2,7 @@ package algohani.moduleuserapi.domain.auth.service;
 
 import algohani.common.entity.Member;
 import algohani.common.enums.Role;
+import algohani.common.enums.TokenName;
 import algohani.common.exception.CustomException;
 import algohani.common.utils.CookieUtils;
 import algohani.moduleuserapi.domain.auth.dto.request.LoginReqDto;
@@ -65,7 +66,7 @@ public class LoginService {
         valueOperations.set(savedMember.getId(), refreshTokenDto.refreshToken(), refreshTokenDto.expiresIn(), TimeUnit.MILLISECONDS);
 
         // Refresh Token을 쿠키에 담아서 전달
-        Cookie cookie = CookieUtils.createCookie("refreshToken", refreshTokenDto.refreshToken(), refreshTokenDto.getExpiresInSecond());
+        Cookie cookie = CookieUtils.createCookie(TokenName.USER_REFRESH_TOKEN.name(), refreshTokenDto.refreshToken(), refreshTokenDto.getExpiresInSecond());
         response.addCookie(cookie);
 
         return tokenDto.accessToken();
