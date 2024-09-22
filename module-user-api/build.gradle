@@ -86,6 +86,21 @@ tasks.withType(GenerateSwaggerUI).configureEach {
 tasks.register('copySwaggerUI', Copy) {
     dependsOn 'generateSwaggerUISample'
 
+    doFirst {
+        def swaggerUIFile = file("${layout.buildDirectory.dir('api-spec/openapi3.yaml').get().asFile}")
+
+        def securitySchemesContent = "  securitySchemes:\n" +
+                "    APIKey:\n" +
+                "      type: apiKey\n" +
+                "      name: Authorization\n" +
+                "      in: header\n" +
+                "security:\n" +
+                "  - APIKey: []  #  Apply the security scheme here"
+
+        swaggerUIFile.append securitySchemesContent
+
+    }
+
     // 복사할 소스 파일 설정
     from("${layout.buildDirectory.dir('api-spec/openapi3.yaml').get().asFile}")
 
