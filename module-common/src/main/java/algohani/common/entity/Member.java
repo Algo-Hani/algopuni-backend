@@ -1,7 +1,10 @@
 package algohani.common.entity;
 
+import algohani.common.enums.SocialType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.Id;
 import lombok.AccessLevel;
 import lombok.Builder;
@@ -18,11 +21,11 @@ import org.hibernate.annotations.Comment;
 public class Member extends BaseEntity {
 
     @Id
-    @Column(name = "id", nullable = false, length = 30)
+    @Column(name = "id", nullable = false, length = 50)
     @Comment("아이디")
     private String id;
 
-    @Column(name = "password", nullable = false, length = 200)
+    @Column(name = "password", length = 200)
     @Comment("비밀번호")
     private String password;
 
@@ -30,10 +33,16 @@ public class Member extends BaseEntity {
     @Comment("닉네임")
     private String nickname;
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "social_type")
+    @Comment("SNS 로그인 유형")
+    private SocialType socialType;
+
     @Builder
-    public Member(String id, String password, String nickname) {
+    public Member(String id, String password, String nickname, SocialType socialType) {
         this.id = id;
         this.password = password;
         this.nickname = nickname;
+        this.socialType = socialType;
     }
 }

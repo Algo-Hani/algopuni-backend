@@ -3,7 +3,10 @@ package algohani.moduleuserapi.global.security;
 import algohani.moduleuserapi.global.filter.JwtAuthenticationFilter;
 import algohani.moduleuserapi.global.security.handler.JwtAccessDeniedHandler;
 import algohani.moduleuserapi.global.security.handler.JwtAuthenticationEntryPoint;
+import algohani.moduleuserapi.global.security.handler.OAuth2LoginFailureHandler;
+import algohani.moduleuserapi.global.security.handler.OAuth2LoginSuccessHandler;
 import algohani.moduleuserapi.global.security.jwt.JwtTokenProvider;
+import algohani.moduleuserapi.global.security.oauth.CustomOAuth2UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -29,7 +32,8 @@ public class SecurityConfig {
         "/api/v1/auth/refresh",
         "/docs/swagger-ui/**",
         "/docs/openapi3.yaml",
-        "/v3/api-docs/swagger-config"
+        "/v3/api-docs/swagger-config",
+        "/login/oauth2/code/**",
     };
 
     private final JwtTokenProvider jwtTokenProvider;
@@ -37,6 +41,12 @@ public class SecurityConfig {
     private final JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
 
     private final JwtAccessDeniedHandler jwtAccessDeniedHandler;
+
+    private final CustomOAuth2UserService customOAuth2UserService;
+
+    private final OAuth2LoginSuccessHandler oAuth2LoginSuccessHandler;
+
+    private final OAuth2LoginFailureHandler oAuth2LoginFailureHandler;
 
     /**
      * SecurityFilterChain 설정
@@ -66,6 +76,13 @@ public class SecurityConfig {
         http.exceptionHandling(exceptionHandling -> exceptionHandling
             .authenticationEntryPoint(jwtAuthenticationEntryPoint)
             .accessDeniedHandler(jwtAccessDeniedHandler)
+        );
+
+        // OAuth2 로그인 설정
+        http.oauth2Login(oauth2 -> oauth2
+            .userInfoEndpoint(userInfoEndpoint -> userInfoEndpoint.userService(customOAuth2UserService))
+            .successHandler(oAuth2LoginSuccessHandler)
+            .failureHandler(oAuth2LoginFailureHandler)
         );
 
         // JwtAuthenticationFilter 추가
