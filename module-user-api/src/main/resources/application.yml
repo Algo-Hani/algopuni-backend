@@ -27,3 +27,7 @@ springdoc: # Rest API 문서화 설정
     swagger-ui:
         url: /docs/openapi3.yaml
         path: /docs/swagger
+jwt: # JWT 설정
+    secret: ENC(1Vs8h9fCC4BzCX6Z6qAo++kq0d0m4FVQQywMc75rQ8NprNlm7YL8wq36mbri4dyzSfvja+8ShtPuD7fuG2/gzMMRwbwoXPWTsfhRcKcer1dQVbOn09Ab9+LeeVngB540OkA688SjXjxoJCQ6/E+Yi/QRhzmBmiYDvb/AvwXqNAUIotbgR3d3yIQ0YBp2ym67)
+    access-token-expiration: 600 # 10분
+    refresh-token-expiration: 604800 # 7일
