@@ -1,18 +1,31 @@
 package algohani.moduleuserapi.global.security.jwt;
 
+import algohani.common.exception.CustomException;
 import algohani.moduleuserapi.domain.auth.dto.response.TokenDto;
 import algohani.moduleuserapi.domain.auth.dto.response.TokenDto.AccessTokenDto;
 import algohani.moduleuserapi.domain.auth.dto.response.TokenDto.RefreshTokenDto;
+import algohani.moduleuserapi.global.exception.ErrorCode;
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.Jwts.SIG;
+import io.jsonwebtoken.MalformedJwtException;
+import io.jsonwebtoken.UnsupportedJwtException;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
+import io.jsonwebtoken.security.SecurityException;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.Date;
 import java.util.stream.Collectors;
 import javax.crypto.SecretKey;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.userdetails.User;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -38,6 +51,44 @@ public class JwtTokenProvider {
             .accessToken(accessTokenDto)
             .refreshToken(refreshTokenDto)
             .build();
+    }
+
+    /**
+     * AccessToken의 유효성을 검증하는 메소드
+     */
+    public boolean validateToken(final String accessToken) {
+        try {
+            Jwts.parser()
+                .verifyWith(getSigningKey())
+                .build()
+                .parseSignedClaims(accessToken);
+            return true;
+        } catch (SecurityException | MalformedJwtException | UnsupportedJwtException e) {
+            throw new CustomException(ErrorCode.INVALID_ACCESS_TOKEN);
+        } catch (ExpiredJwtException e) {
+            throw new CustomException(ErrorCode.EXPIRED_ACCESS_TOKEN);
+        }
+    }
+
+
+    /**
+     * Access Token을 파싱하여 Authentication 객체를 반환하는 메소드
+     */
+    public Authentication getAuthentication(final String accessToken) {
+        // 토큰 복호화
+        Claims claims = parseClaims(accessToken);
+        if (claims.get("auth") == null) {
+            throw new CustomException(ErrorCode.INVALID_ACCESS_TOKEN);
+        }
+
+        // 권한정보 획득
+        Collection<? extends GrantedAuthority> authorities =
+            Arrays.stream(claims.get("auth").toString().split(","))
+                .map(SimpleGrantedAuthority::new)
+                .toList();
+
+        UserDetails principal = new User(claims.getSubject(), "", authorities);
+        return new UsernamePasswordAuthenticationToken(principal, "", authorities);
     }
 
     /**
@@ -94,5 +145,23 @@ public class JwtTokenProvider {
     private SecretKey getSigningKey() {
         byte[] keyBytes = Decoders.BASE64.decode(secretKey);
         return Keys.hmacShaKeyFor(keyBytes);
+    }
+
+    /**
+     * AccessToken을 파싱하여 Claims를 반환하는 메소드
+     *
+     * @param accessToken AccessToken
+     * @return Claims
+     */
+    private Claims parseClaims(final String accessToken) {
+        try {
+            return Jwts.parser()
+                .verifyWith(getSigningKey())
+                .build()
+                .parseSignedClaims(accessToken)
+                .getPayload();
+        } catch (ExpiredJwtException e) {
+            throw new CustomException(ErrorCode.EXPIRED_ACCESS_TOKEN);
+        }
     }
 }
