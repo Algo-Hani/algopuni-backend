@@ -49,6 +49,6 @@ public class BaseEntity {
     @Column(name = "del_flag", nullable = false, insertable = false)
     @Enumerated(EnumType.STRING)
     @Comment("삭제여부")
-    @ColumnDefault("'Y'")
+    @ColumnDefault("'N'")
     private YNFlag delFlag;
 }
