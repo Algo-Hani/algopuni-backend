@@ -1,6 +1,7 @@
 package algohani.moduleuserapi.domain.auth.controller;
 
 import static com.epages.restdocs.apispec.MockMvcRestDocumentationWrapper.document;
+import static com.epages.restdocs.apispec.ResourceDocumentation.headerWithName;
 import static com.epages.restdocs.apispec.ResourceDocumentation.resource;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
@@ -19,6 +20,7 @@ import algohani.moduleuserapi.domain.auth.dto.request.LoginReqDto;
 import algohani.moduleuserapi.domain.auth.dto.request.SignUpReqDto;
 import algohani.moduleuserapi.domain.auth.dto.response.TokenDto.AccessTokenDto;
 import algohani.moduleuserapi.domain.auth.service.LoginService;
+import algohani.moduleuserapi.domain.auth.service.LogoutService;
 import algohani.moduleuserapi.domain.auth.service.SignUpService;
 import algohani.moduleuserapi.domain.auth.service.TokenRefreshService;
 import algohani.moduleuserapi.global.dto.ResponseText;
@@ -56,6 +58,9 @@ class AuthControllerTest {
 
     @MockBean
     private LoginService loginService;
+
+    @MockBean
+    private LogoutService logoutService;
 
     @MockBean
     private TokenRefreshService tokenRefreshService;
@@ -636,7 +641,7 @@ class AuthControllerTest {
                 .andExpect(jsonPath("$.data.expiresIn").value(accessTokenDto.expiresIn()));
 
             actions
-                .andDo(document("성공",
+                .andDo(document("로그인 성공",
                         ApiDocumentUtils.getNoAuthDocumentRequest(),
                         ApiDocumentUtils.getDocumentResponse(),
                         resource(ResourceSnippetParameters.builder()
@@ -686,7 +691,7 @@ class AuthControllerTest {
                 .andExpect(jsonPath("$.errorCode").value(ErrorCode.LOGIN_FAILED.getCode()));
 
             actions
-                .andDo(document("실패 - 아이디가 일치하지 않는 경우",
+                .andDo(document("로그인 실패 - 아이디가 일치하지 않는 경우",
                         ApiDocumentUtils.getNoAuthDocumentRequest(),
                         ApiDocumentUtils.getDocumentResponse(),
                         resource(ResourceSnippetParameters.builder()
@@ -736,7 +741,7 @@ class AuthControllerTest {
                 .andExpect(jsonPath("$.errorCode").value(ErrorCode.LOGIN_FAILED.getCode()));
 
             actions
-                .andDo(document("실패 - 비밀번호가 일치하지 않는 경우",
+                .andDo(document("로그인 실패 - 비밀번호가 일치하지 않는 경우",
                         ApiDocumentUtils.getNoAuthDocumentRequest(),
                         ApiDocumentUtils.getDocumentResponse(),
                         resource(ResourceSnippetParameters.builder()
@@ -765,6 +770,52 @@ class AuthControllerTest {
         }
 
         // TODO : 소셜 로그인 사용자인 경우
+    }
+
+    @Nested
+    @DisplayName("로그아웃 API")
+    class 로그아웃_API {
+
+        @Test
+        @DisplayName("성공")
+        void 성공() throws Exception {
+            // given
+            willDoNothing().given(logoutService).logout(any());
+
+            // when & then
+            ResultActions actions = mockMvc.perform(RestDocumentationRequestBuilders.post("/api/v1/auth/logout")
+                .contentType(MediaType.APPLICATION_JSON)
+                .with(csrf().asHeader())
+            );
+
+            actions
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value(Status.SUCCESS.name()))
+                .andExpect(jsonPath("$.statusCode").value(200))
+                .andExpect(jsonPath("$.message").value(ResponseText.LOGOUT_SUCCESS.getMessage()));
+
+            actions
+                .andDo(document("로그아웃 성공",
+                        ApiDocumentUtils.getDocumentRequest(),
+                        ApiDocumentUtils.getDocumentResponse(),
+                        resource(ResourceSnippetParameters.builder()
+                            .tag("로그아웃")
+                            .summary("로그아웃 API")
+                            .requestHeaders(
+                                headerWithName("Authorization").description("Bearer Token")
+                            )
+                            .responseFields(
+                                fieldWithPath("status").description("상태"),
+                                fieldWithPath("statusCode").description("상태 코드"),
+                                fieldWithPath("message").description("메시지"),
+                                fieldWithPath("timestamp").description("타임스탬프")
+                            )
+                            .responseSchema(Schema.schema("ApiResponse"))
+                            .build()
+                        )
+                    )
+                );
+        }
     }
 
     @Nested
