@@ -13,7 +13,10 @@ public enum ResponseText implements BaseResponseText {
     VERIFICATION_CODE_VERIFIED(HttpStatus.OK, "인증번호가 일치합니다."),
 
     // 로그인 관련 응답 메시지
-    LOGIN_SUCCESS(HttpStatus.OK, "로그인에 성공했습니다.");
+    LOGIN_SUCCESS(HttpStatus.OK, "로그인에 성공했습니다."),
+
+    // 토큰 관련 응답 메시지
+    ACCESS_TOKEN_REFRESHED(HttpStatus.OK, "Access Token이 갱신되었습니다.");
 
     private final HttpStatus httpStatus;
 

@@ -20,6 +20,7 @@ public enum ErrorCode implements BaseErrorCode {
     // 토큰 관련 에러코드
     INVALID_ACCESS_TOKEN(HttpStatus.UNAUTHORIZED, "AU007", "유효하지 않은 Access Token입니다."),
     EXPIRED_ACCESS_TOKEN(HttpStatus.UNAUTHORIZED, "AU008", "만료된 Access Token입니다."),
+    INVALID_REFRESH_TOKEN(HttpStatus.UNAUTHORIZED, "AU011", "유효하지 않은 Refresh Token입니다."),
 
     // 권한 관련 에러코드
     FORBIDDEN(HttpStatus.FORBIDDEN, "AU009", "권한이 없습니다."),
