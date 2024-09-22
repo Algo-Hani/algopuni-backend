@@ -33,4 +33,21 @@ public class RandomUtils {
         }
         return result.toString();
     }
+
+
+    /**
+     * 랜덤 숫자 문자열 생성
+     *
+     * @param length 길이
+     * @return 랜덤 숫자 문자열
+     */
+    public static String generateRandomNumberString(final int length) {
+        SecureRandom random = new SecureRandom();
+        StringBuilder result = new StringBuilder(length);
+        for (int i = 0; i < length; i++) {
+            int index = random.nextInt(DIGITS.length());
+            result.append(DIGITS.charAt(index));
+        }
+        return result.toString();
+    }
 }
