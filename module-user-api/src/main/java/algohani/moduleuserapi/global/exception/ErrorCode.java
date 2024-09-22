@@ -17,6 +17,14 @@ public enum ErrorCode implements BaseErrorCode {
     // 로그인 관련 에러코드
     LOGIN_FAILED(HttpStatus.BAD_REQUEST, "AU006", "로그인에 실패했습니다."),
 
+    // 토큰 관련 에러코드
+    INVALID_ACCESS_TOKEN(HttpStatus.UNAUTHORIZED, "AU007", "유효하지 않은 Access Token입니다."),
+    EXPIRED_ACCESS_TOKEN(HttpStatus.UNAUTHORIZED, "AU008", "만료된 Access Token입니다."),
+
+    // 권한 관련 에러코드
+    FORBIDDEN(HttpStatus.FORBIDDEN, "AU009", "권한이 없습니다."),
+    UNAUTHORIZED(HttpStatus.UNAUTHORIZED, "AU010", "인증이 필요합니다."),
+
     // 공통 에러코드
     INTERNAL_SERVER_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "CM001", "서버 내부 에러입니다.");
 
