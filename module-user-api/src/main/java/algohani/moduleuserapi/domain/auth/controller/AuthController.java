@@ -6,6 +6,7 @@ import algohani.moduleuserapi.domain.auth.dto.request.LoginReqDto;
 import algohani.moduleuserapi.domain.auth.dto.request.SignUpReqDto;
 import algohani.moduleuserapi.domain.auth.dto.response.TokenDto.AccessTokenDto;
 import algohani.moduleuserapi.domain.auth.service.LoginService;
+import algohani.moduleuserapi.domain.auth.service.LogoutService;
 import algohani.moduleuserapi.domain.auth.service.SignUpService;
 import algohani.moduleuserapi.domain.auth.service.TokenRefreshService;
 import algohani.moduleuserapi.global.dto.ResponseText;
@@ -27,6 +28,8 @@ public class AuthController {
     private final SignUpService signUpService;
 
     private final LoginService loginService;
+
+    private final LogoutService logoutService;
 
     private final TokenRefreshService tokenRefreshService;
 
@@ -68,6 +71,16 @@ public class AuthController {
         AccessTokenDto accessTokenDto = loginService.login(loginReqDto, response);
 
         return ApiResponse.success(ResponseText.LOGIN_SUCCESS, accessTokenDto);
+    }
+
+    /**
+     * 로그아웃 API
+     */
+    @PostMapping("/logout")
+    public ResponseEntity<ApiResponse<Void>> logout(HttpServletResponse response) {
+        logoutService.logout(response);
+
+        return ApiResponse.success(ResponseText.LOGOUT_SUCCESS);
     }
 
     /**
