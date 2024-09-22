@@ -1,6 +1,7 @@
 package algohani.common.utils;
 
 import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 
@@ -48,16 +49,14 @@ public class CookieUtils {
 
     /**
      * 쿠키 삭제
-     *
-     * @param cookieName 쿠키명
      */
-    public static Cookie getCookieForRemove(final String cookieName) {
+    public static void removeCookie(final String cookieName, final HttpServletResponse response) {
         Cookie cookie = new Cookie(cookieName, null);
         cookie.setHttpOnly(true);
         cookie.setSecure(true);
         cookie.setMaxAge(0);
         cookie.setPath("/");
 
-        return cookie;
+        response.addCookie(cookie);
     }
 }
