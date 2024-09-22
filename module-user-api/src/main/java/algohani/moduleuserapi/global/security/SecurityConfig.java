@@ -18,6 +18,7 @@ public class SecurityConfig {
     private static final String[] PERMIT_ALL = {
         "/api/v1/auth/signup",
         "/api/v1/auth/email-verification/**",
+        "/api/v1/auth/login",
         "/docs/swagger-ui/**",
         "/docs/openapi3.yaml",
         "/v3/api-docs/swagger-config"

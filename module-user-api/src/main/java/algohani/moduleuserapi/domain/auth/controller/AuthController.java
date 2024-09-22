@@ -2,9 +2,13 @@ package algohani.moduleuserapi.domain.auth.controller;
 
 import algohani.common.dto.ApiResponse;
 import algohani.moduleuserapi.domain.auth.dto.request.EmailCodeReqDto;
+import algohani.moduleuserapi.domain.auth.dto.request.LoginReqDto;
 import algohani.moduleuserapi.domain.auth.dto.request.SignUpReqDto;
+import algohani.moduleuserapi.domain.auth.dto.response.TokenDto.AccessTokenDto;
+import algohani.moduleuserapi.domain.auth.service.LoginService;
 import algohani.moduleuserapi.domain.auth.service.SignUpService;
 import algohani.moduleuserapi.global.dto.ResponseText;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -19,6 +23,8 @@ import org.springframework.web.bind.annotation.RestController;
 public class AuthController {
 
     private final SignUpService signUpService;
+
+    private final LoginService loginService;
 
     /**
      * 이메일 인증 코드 전송 API
@@ -48,5 +54,15 @@ public class AuthController {
         signUpService.signup(dto);
 
         return ApiResponse.success(ResponseText.SIGN_UP_SUCCESS);
+    }
+
+    /**
+     * 로그인 API
+     */
+    @PostMapping("/login")
+    public ResponseEntity<ApiResponse<AccessTokenDto>> login(@Valid @RequestBody LoginReqDto loginReqDto, HttpServletResponse response) {
+        AccessTokenDto accessTokenDto = loginService.login(loginReqDto, response);
+
+        return ApiResponse.success(ResponseText.LOGIN_SUCCESS, accessTokenDto);
     }
 }
