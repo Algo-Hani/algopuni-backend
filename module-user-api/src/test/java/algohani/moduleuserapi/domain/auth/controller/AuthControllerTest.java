@@ -7,6 +7,7 @@ import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
 import static org.mockito.BDDMockito.willDoNothing;
 import static org.mockito.BDDMockito.willThrow;
+import static org.springframework.restdocs.payload.PayloadDocumentation.fieldWithPath;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -19,6 +20,7 @@ import algohani.moduleuserapi.domain.auth.dto.request.SignUpReqDto;
 import algohani.moduleuserapi.domain.auth.dto.response.TokenDto.AccessTokenDto;
 import algohani.moduleuserapi.domain.auth.service.LoginService;
 import algohani.moduleuserapi.domain.auth.service.SignUpService;
+import algohani.moduleuserapi.domain.auth.service.TokenRefreshService;
 import algohani.moduleuserapi.global.dto.ResponseText;
 import algohani.moduleuserapi.global.exception.ErrorCode;
 import algohani.moduleuserapi.restdocs.ApiDocumentUtils;
@@ -54,6 +56,9 @@ class AuthControllerTest {
 
     @MockBean
     private LoginService loginService;
+
+    @MockBean
+    private TokenRefreshService tokenRefreshService;
 
     @Autowired
     private MockMvc mockMvc;
@@ -760,5 +765,147 @@ class AuthControllerTest {
         }
 
         // TODO : 소셜 로그인 사용자인 경우
+    }
+
+    @Nested
+    @DisplayName("Access Token 갱신 API")
+    class Access_Token_갱신_API {
+
+        @Test
+        @DisplayName("성공")
+        void 성공() throws Exception {
+            // given
+            AccessTokenDto accessTokenDto = AccessTokenDto.builder()
+                .accessToken("accessToken")
+                .expiresIn(new Date().getTime() + 1000 * 60 * 60)
+                .build();
+
+            given(tokenRefreshService.refresh(any())).willReturn(accessTokenDto);
+
+            // when & then
+            ResultActions actions = mockMvc.perform(RestDocumentationRequestBuilders.post("/api/v1/auth/refresh")
+                .contentType(MediaType.APPLICATION_JSON)
+                .with(csrf().asHeader())
+            );
+
+            actions
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value(Status.SUCCESS.name()))
+                .andExpect(jsonPath("$.statusCode").value(200))
+                .andExpect(jsonPath("$.message").value(ResponseText.ACCESS_TOKEN_REFRESHED.getMessage()))
+                .andExpect(jsonPath("$.data.accessToken").value(accessTokenDto.accessToken()))
+                .andExpect(jsonPath("$.data.expiresIn").value(accessTokenDto.expiresIn()));
+
+            actions
+                .andDo(document("Access Token 갱신 성공",
+                        ApiDocumentUtils.getNoAuthDocumentRequest(),
+                        ApiDocumentUtils.getDocumentResponse(),
+                        resource(ResourceSnippetParameters.builder()
+                            .tag("Access Token 갱신")
+                            .summary("Access Token 갱신 API")
+                            .responseFields(
+                                fieldWithPath("status").description("상태"),
+                                fieldWithPath("statusCode").description("상태 코드"),
+                                fieldWithPath("message").description("메시지"),
+                                fieldWithPath("timestamp").description("타임스탬프"),
+                                fieldWithPath("data.accessToken").description("액세스 토큰"),
+                                fieldWithPath("data.expiresIn").description("만료 시간")
+                            )
+                            .responseSchema(Schema.schema("ApiResponse"))
+                            .build()
+                        )
+                    )
+                );
+
+            then(tokenRefreshService).should().refresh(any());
+        }
+
+        @Test
+        @DisplayName("실패 - 쿠키에 Refresh Token이 존재하지 않는 경우")
+        void 실패_쿠키에_Refresh_Token이_존재하지_않는_경우() throws Exception {
+            // given
+            willThrow(new CustomException(ErrorCode.INVALID_REFRESH_TOKEN)).given(tokenRefreshService).refresh(any());
+
+            // when & then
+            ResultActions actions = mockMvc.perform(RestDocumentationRequestBuilders.post("/api/v1/auth/refresh")
+                .contentType(MediaType.APPLICATION_JSON)
+                .with(csrf().asHeader())
+            );
+
+            actions
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.status").value(Status.ERROR.name()))
+                .andExpect(jsonPath("$.statusCode").value(401))
+                .andExpect(jsonPath("$.message").value(ErrorCode.INVALID_REFRESH_TOKEN.getMessage()))
+                .andExpect(jsonPath("$.errorName").value(ErrorCode.INVALID_REFRESH_TOKEN.getName()))
+                .andExpect(jsonPath("$.errorCode").value(ErrorCode.INVALID_REFRESH_TOKEN.getCode()));
+
+            actions
+                .andDo(document("Access Token 갱신 실패 - 쿠키에 Refresh Token이 존재하지 않는 경우",
+                        ApiDocumentUtils.getNoAuthDocumentRequest(),
+                        ApiDocumentUtils.getDocumentResponse(),
+                        resource(ResourceSnippetParameters.builder()
+                            .tag("Access Token 갱신")
+                            .summary("Access Token 갱신 API")
+                            .responseFields(
+                                fieldWithPath("status").description("상태"),
+                                fieldWithPath("statusCode").description("상태 코드"),
+                                fieldWithPath("message").description("메시지"),
+                                fieldWithPath("errorName").description("에러 이름"),
+                                fieldWithPath("errorCode").description("에러 코드"),
+                                fieldWithPath("timestamp").description("타임스탬프")
+                            )
+                            .responseSchema(Schema.schema("ApiResponse"))
+                            .build()
+                        )
+                    )
+                );
+
+            then(tokenRefreshService).should().refresh(any());
+        }
+
+        @Test
+        @DisplayName("실패 - Refresh Token이 만료된 경우")
+        void 실패_Refresh_Token이_만료된_경우() throws Exception {
+            // given
+            willThrow(new CustomException(ErrorCode.INVALID_ACCESS_TOKEN)).given(tokenRefreshService).refresh(any());
+
+            // when & then
+            ResultActions actions = mockMvc.perform(RestDocumentationRequestBuilders.post("/api/v1/auth/refresh")
+                .contentType(MediaType.APPLICATION_JSON)
+                .with(csrf().asHeader())
+            );
+
+            actions
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.status").value(Status.ERROR.name()))
+                .andExpect(jsonPath("$.statusCode").value(401))
+                .andExpect(jsonPath("$.message").value(ErrorCode.INVALID_ACCESS_TOKEN.getMessage()))
+                .andExpect(jsonPath("$.errorName").value(ErrorCode.INVALID_ACCESS_TOKEN.getName()))
+                .andExpect(jsonPath("$.errorCode").value(ErrorCode.INVALID_ACCESS_TOKEN.getCode()));
+
+            actions
+                .andDo(document("Access Token 갱신 실패 - Refresh Token이 만료된 경우",
+                        ApiDocumentUtils.getNoAuthDocumentRequest(),
+                        ApiDocumentUtils.getDocumentResponse(),
+                        resource(ResourceSnippetParameters.builder()
+                            .tag("Access Token 갱신")
+                            .summary("Access Token 갱신 API")
+                            .responseFields(
+                                fieldWithPath("status").description("상태"),
+                                fieldWithPath("statusCode").description("상태 코드"),
+                                fieldWithPath("message").description("메시지"),
+                                fieldWithPath("errorName").description("에러 이름"),
+                                fieldWithPath("errorCode").description("에러 코드"),
+                                fieldWithPath("timestamp").description("타임스탬프")
+                            )
+                            .responseSchema(Schema.schema("ApiResponse"))
+                            .build()
+                        )
+                    )
+                );
+
+            then(tokenRefreshService).should().refresh(any());
+        }
     }
 }
