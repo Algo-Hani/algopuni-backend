@@ -8,7 +8,7 @@ spring:
     data:
         redis:
             port: 6379
-            host: ENC(9SY4B3aFQOzaUyc/0sO9RF7+23KfW1qWLH2JUIPd3CvKeZqB2lQ4+W4XlI81jfFD8qd73dF95B600nlD8gWX0g==)
+            host: ENC(MWrEt5KalU86/icWj4gO9KXn+qsJwa0/KwC2A+IrRLRaA7u7DaFnamal2CiWva1dCUh63+vSz+RVWczPhqba/Q==)
     security:
         oauth2: # OAuth2 설정
             client:
