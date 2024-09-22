@@ -3,6 +3,7 @@ package algohani.moduleuserapi.domain.auth.controller;
 import static com.epages.restdocs.apispec.MockMvcRestDocumentationWrapper.document;
 import static com.epages.restdocs.apispec.ResourceDocumentation.resource;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
 import static org.mockito.BDDMockito.willDoNothing;
 import static org.mockito.BDDMockito.willThrow;
@@ -13,7 +14,10 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import algohani.common.dto.ApiResponse.Status;
 import algohani.common.exception.CustomException;
 import algohani.moduleuserapi.domain.auth.dto.request.EmailCodeReqDto;
+import algohani.moduleuserapi.domain.auth.dto.request.LoginReqDto;
 import algohani.moduleuserapi.domain.auth.dto.request.SignUpReqDto;
+import algohani.moduleuserapi.domain.auth.dto.response.TokenDto.AccessTokenDto;
+import algohani.moduleuserapi.domain.auth.service.LoginService;
 import algohani.moduleuserapi.domain.auth.service.SignUpService;
 import algohani.moduleuserapi.global.dto.ResponseText;
 import algohani.moduleuserapi.global.exception.ErrorCode;
@@ -22,6 +26,8 @@ import com.epages.restdocs.apispec.ConstrainedFields;
 import com.epages.restdocs.apispec.ResourceSnippetParameters;
 import com.epages.restdocs.apispec.Schema;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.servlet.http.HttpServletResponse;
+import java.util.Date;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -45,6 +51,9 @@ class AuthControllerTest {
 
     @MockBean
     private SignUpService signUpService;
+
+    @MockBean
+    private LoginService loginService;
 
     @Autowired
     private MockMvc mockMvc;
@@ -582,5 +591,174 @@ class AuthControllerTest {
 
             then(signUpService).should().signup(any());
         }
+    }
+
+    @Nested
+    @DisplayName("로그인 API")
+    class 로그인_API {
+
+        private final LoginReqDto loginReqDto = LoginReqDto.builder()
+            .id("id")
+            .password("password")
+            .build();
+
+        private final AccessTokenDto accessTokenDto = AccessTokenDto.builder()
+            .accessToken("accessToken")
+            .expiresIn(new Date().getTime() + 1000 * 60 * 60)
+            .build();
+
+        private final ConstrainedFields fields = new ConstrainedFields(LoginReqDto.class);
+
+        @Test
+        @DisplayName("성공")
+        void 성공() throws Exception {
+            // given
+            given(loginService.login(any(LoginReqDto.class), any(HttpServletResponse.class))).willReturn(accessTokenDto);
+
+            // when & then
+            ResultActions actions = mockMvc.perform(RestDocumentationRequestBuilders.post("/api/v1/auth/login")
+                .contentType(MediaType.APPLICATION_JSON)
+                .with(csrf().asHeader())
+                .content(objectMapper.writeValueAsString(loginReqDto))
+            );
+
+            actions
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value(Status.SUCCESS.name()))
+                .andExpect(jsonPath("$.statusCode").value(200))
+                .andExpect(jsonPath("$.message").value(ResponseText.LOGIN_SUCCESS.getMessage()))
+                .andExpect(jsonPath("$.data.accessToken").value(accessTokenDto.accessToken()))
+                .andExpect(jsonPath("$.data.expiresIn").value(accessTokenDto.expiresIn()));
+
+            actions
+                .andDo(document("성공",
+                        ApiDocumentUtils.getNoAuthDocumentRequest(),
+                        ApiDocumentUtils.getDocumentResponse(),
+                        resource(ResourceSnippetParameters.builder()
+                            .tag("로그인")
+                            .summary("로그인 API")
+                            .requestFields(
+                                fields.withPath("id").description("이메일"),
+                                fields.withPath("password").description("비밀번호")
+                            )
+                            .responseFields(
+                                fields.withPath("status").description("상태"),
+                                fields.withPath("statusCode").description("상태 코드"),
+                                fields.withPath("message").description("메시지"),
+                                fields.withPath("timestamp").description("타임스탬프"),
+                                fields.withPath("data.accessToken").description("액세스 토큰"),
+                                fields.withPath("data.expiresIn").description("만료 시간")
+                            )
+                            .requestSchema(Schema.schema("LoginReqDto"))
+                            .responseSchema(Schema.schema("ApiResponse"))
+                            .build()
+                        )
+                    )
+                );
+
+            then(loginService).should().login(any(LoginReqDto.class), any(HttpServletResponse.class));
+        }
+
+        @Test
+        @DisplayName("실패 - 아이디가 일치하지 않는 경우")
+        void 실패_아이디가_일치하지_않는_경우() throws Exception {
+            // given
+            willThrow(new CustomException(ErrorCode.LOGIN_FAILED)).given(loginService).login(any(LoginReqDto.class), any(HttpServletResponse.class));
+
+            // when & then
+            ResultActions actions = mockMvc.perform(RestDocumentationRequestBuilders.post("/api/v1/auth/login")
+                .contentType(MediaType.APPLICATION_JSON)
+                .with(csrf().asHeader())
+                .content(objectMapper.writeValueAsString(loginReqDto))
+            );
+
+            actions
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.status").value(Status.ERROR.name()))
+                .andExpect(jsonPath("$.statusCode").value(400))
+                .andExpect(jsonPath("$.message").value(ErrorCode.LOGIN_FAILED.getMessage()))
+                .andExpect(jsonPath("$.errorName").value(ErrorCode.LOGIN_FAILED.getName()))
+                .andExpect(jsonPath("$.errorCode").value(ErrorCode.LOGIN_FAILED.getCode()));
+
+            actions
+                .andDo(document("실패 - 아이디가 일치하지 않는 경우",
+                        ApiDocumentUtils.getNoAuthDocumentRequest(),
+                        ApiDocumentUtils.getDocumentResponse(),
+                        resource(ResourceSnippetParameters.builder()
+                            .tag("로그인")
+                            .summary("로그인 API")
+                            .requestFields(
+                                fields.withPath("id").description("이메일"),
+                                fields.withPath("password").description("비밀번호")
+                            )
+                            .responseFields(
+                                fields.withPath("status").description("상태"),
+                                fields.withPath("statusCode").description("상태 코드"),
+                                fields.withPath("message").description("메시지"),
+                                fields.withPath("errorName").description("에러 이름"),
+                                fields.withPath("errorCode").description("에러 코드"),
+                                fields.withPath("timestamp").description("타임스탬프")
+                            )
+                            .requestSchema(Schema.schema("LoginReqDto"))
+                            .responseSchema(Schema.schema("ApiResponse"))
+                            .build()
+                        )
+                    )
+                );
+
+            then(loginService).should().login(any(LoginReqDto.class), any(HttpServletResponse.class));
+        }
+
+        @Test
+        @DisplayName("실패 - 비밀번호가 일치하지 않는 경우")
+        void 실패_비밀번호가_일치하지_않는_경우() throws Exception {
+            // given
+            willThrow(new CustomException(ErrorCode.LOGIN_FAILED)).given(loginService).login(any(LoginReqDto.class), any(HttpServletResponse.class));
+
+            // when & then
+            ResultActions actions = mockMvc.perform(RestDocumentationRequestBuilders.post("/api/v1/auth/login")
+                .contentType(MediaType.APPLICATION_JSON)
+                .with(csrf().asHeader())
+                .content(objectMapper.writeValueAsString(loginReqDto))
+            );
+
+            actions
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.status").value(Status.ERROR.name()))
+                .andExpect(jsonPath("$.statusCode").value(400))
+                .andExpect(jsonPath("$.message").value(ErrorCode.LOGIN_FAILED.getMessage()))
+                .andExpect(jsonPath("$.errorName").value(ErrorCode.LOGIN_FAILED.getName()))
+                .andExpect(jsonPath("$.errorCode").value(ErrorCode.LOGIN_FAILED.getCode()));
+
+            actions
+                .andDo(document("실패 - 비밀번호가 일치하지 않는 경우",
+                        ApiDocumentUtils.getNoAuthDocumentRequest(),
+                        ApiDocumentUtils.getDocumentResponse(),
+                        resource(ResourceSnippetParameters.builder()
+                            .tag("로그인")
+                            .summary("로그인 API")
+                            .requestFields(
+                                fields.withPath("id").description("이메일"),
+                                fields.withPath("password").description("비밀번호")
+                            )
+                            .responseFields(
+                                fields.withPath("status").description("상태"),
+                                fields.withPath("statusCode").description("상태 코드"),
+                                fields.withPath("message").description("메시지"),
+                                fields.withPath("errorName").description("에러 이름"),
+                                fields.withPath("errorCode").description("에러 코드"),
+                                fields.withPath("timestamp").description("타임스탬프")
+                            )
+                            .requestSchema(Schema.schema("LoginReqDto"))
+                            .responseSchema(Schema.schema("ApiResponse"))
+                            .build()
+                        )
+                    )
+                );
+
+            then(loginService).should().login(any(LoginReqDto.class), any(HttpServletResponse.class));
+        }
+
+        // TODO : 소셜 로그인 사용자인 경우
     }
 }
