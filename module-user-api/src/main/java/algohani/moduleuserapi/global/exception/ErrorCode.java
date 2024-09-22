@@ -14,6 +14,9 @@ public enum ErrorCode implements BaseErrorCode {
     FAILED_TO_VERIFY_EMAIL(HttpStatus.BAD_REQUEST, "AU004", "인증번호가 일치하지 않습니다."),
     PASSWORD_MISMATCH(HttpStatus.BAD_REQUEST, "AU005", "비밀번호가 일치하지 않습니다."),
 
+    // 로그인 관련 에러코드
+    LOGIN_FAILED(HttpStatus.BAD_REQUEST, "AU006", "로그인에 실패했습니다."),
+
     // 공통 에러코드
     INTERNAL_SERVER_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "CM001", "서버 내부 에러입니다.");
 
