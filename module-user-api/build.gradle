@@ -15,6 +15,9 @@ dependencies {
     // Spring Boot Web
     implementation 'org.springframework.boot:spring-boot-starter-web'
 
+    // Spring OAuth2
+    implementation 'org.springframework.boot:spring-boot-starter-oauth2-client'
+
     // Jasypt
     implementation 'com.github.ulisesbocchio:jasypt-spring-boot-starter:3.0.5'
 
