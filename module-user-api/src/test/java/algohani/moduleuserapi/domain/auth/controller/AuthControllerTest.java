@@ -769,7 +769,55 @@ class AuthControllerTest {
             then(loginService).should().login(any(LoginReqDto.class), any(HttpServletResponse.class));
         }
 
-        // TODO : 소셜 로그인 사용자인 경우
+        @Test
+        @DisplayName("실패 - 소셜 로그인 사용자인 경우")
+        void 실패_소셜_로그인_사용자인_경우() throws Exception {
+            // given
+            willThrow(new CustomException(ErrorCode.LOGIN_FAILED)).given(loginService).login(any(LoginReqDto.class), any(HttpServletResponse.class));
+
+            // when & then
+            ResultActions actions = mockMvc.perform(RestDocumentationRequestBuilders.post("/api/v1/auth/login")
+                .contentType(MediaType.APPLICATION_JSON)
+                .with(csrf().asHeader())
+                .content(objectMapper.writeValueAsString(loginReqDto))
+            );
+
+            actions
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.status").value(Status.ERROR.name()))
+                .andExpect(jsonPath("$.statusCode").value(400))
+                .andExpect(jsonPath("$.message").value(ErrorCode.LOGIN_FAILED.getMessage()))
+                .andExpect(jsonPath("$.errorName").value(ErrorCode.LOGIN_FAILED.getName()))
+                .andExpect(jsonPath("$.errorCode").value(ErrorCode.LOGIN_FAILED.getCode()));
+
+            actions
+                .andDo(document("로그인 실패 - 소셜 로그인 사용자인 경우",
+                        ApiDocumentUtils.getNoAuthDocumentRequest(),
+                        ApiDocumentUtils.getDocumentResponse(),
+                        resource(ResourceSnippetParameters.builder()
+                            .tag("로그인")
+                            .summary("로그인 API")
+                            .requestFields(
+                                fields.withPath("id").description("이메일"),
+                                fields.withPath("password").description("비밀번호")
+                            )
+                            .responseFields(
+                                fields.withPath("status").description("상태"),
+                                fields.withPath("statusCode").description("상태 코드"),
+                                fields.withPath("message").description("메시지"),
+                                fields.withPath("errorName").description("에러 이름"),
+                                fields.withPath("errorCode").description("에러 코드"),
+                                fields.withPath("timestamp").description("타임스탬프")
+                            )
+                            .requestSchema(Schema.schema("LoginReqDto"))
+                            .responseSchema(Schema.schema("ApiResponse"))
+                            .build()
+                        )
+                    )
+                );
+
+            then(loginService).should().login(any(LoginReqDto.class), any(HttpServletResponse.class));
+        }
     }
 
     @Nested
