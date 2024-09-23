@@ -8,6 +8,7 @@ import static org.mockito.BDDMockito.then;
 import static org.mockito.BDDMockito.willDoNothing;
 
 import algohani.common.entity.Member;
+import algohani.common.enums.SocialType;
 import algohani.common.exception.CustomException;
 import algohani.moduleuserapi.domain.auth.dto.request.LoginReqDto;
 import algohani.moduleuserapi.domain.auth.dto.response.TokenDto;
@@ -143,6 +144,29 @@ class LoginServiceTest {
             then(valueOperations).shouldHaveNoInteractions();
         }
 
-        // TODO : 소셜 로그인 사용자인 경우 추가
+        @Test
+        @DisplayName("실패 - 소셜 로그인 사용자인 경우")
+        void 실패_소셜_로그인_사용자인_경우() {
+            // given
+            Member socialMember = Member.builder()
+                .id("id")
+                .password("password")
+                .socialType(SocialType.KAKAO)
+                .build();
+
+            given(memberRepository.findById(any())).willReturn(Optional.of(socialMember));
+            given(passwordEncoder.matches(any(), any())).willReturn(true);
+
+            // when & then
+            assertThatThrownBy(() -> loginService.login(loginReqDto, response))
+                .isInstanceOf(CustomException.class)
+                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.LOGIN_FAILED);
+
+            then(memberRepository).should().findById(any());
+            then(passwordEncoder).should().matches(any(), any());
+            then(jwtTokenProvider).shouldHaveNoInteractions();
+            then(redisTemplate).shouldHaveNoInteractions();
+            then(valueOperations).shouldHaveNoInteractions();
+        }
     }
 }
