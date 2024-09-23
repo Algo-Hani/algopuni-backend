@@ -48,7 +48,10 @@ public class LoginService {
             throw new CustomException(ErrorCode.LOGIN_FAILED);
         }
 
-        // TODO : 소셜 로그인 여부 확인
+        // 소셜 로그인 여부 확인
+        if (savedMember.isSocial()) {
+            throw new CustomException(ErrorCode.LOGIN_FAILED);
+        }
 
         // Authentication 객체 생성
         Authentication authentication = new UsernamePasswordAuthenticationToken(

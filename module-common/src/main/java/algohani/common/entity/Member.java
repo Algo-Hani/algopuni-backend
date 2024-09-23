@@ -45,4 +45,13 @@ public class Member extends BaseEntity {
         this.nickname = nickname;
         this.socialType = socialType;
     }
+
+    /**
+     * 소셜 로그인 여부 확인
+     *
+     * @return 소셜 로그인 여부
+     */
+    public boolean isSocial() {
+        return socialType != null;
+    }
 }
