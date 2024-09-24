@@ -4,6 +4,7 @@ import static algohani.common.entity.QLanguage.language;
 import static algohani.common.entity.QProblem.problem;
 
 import algohani.common.dto.PageResponseDto;
+import algohani.common.enums.YNFlag;
 import algohani.moduleuserapi.domain.problem.dto.request.ProblemReqDto;
 import algohani.moduleuserapi.domain.problem.dto.response.ProblemResDto;
 import com.querydsl.core.BooleanBuilder;
@@ -84,6 +85,7 @@ public class ProblemRepositoryCustomImpl implements ProblemRepositoryCustom {
      */
     private BooleanBuilder getSearchConditions(ProblemReqDto.Search search) {
         BooleanBuilder builder = new BooleanBuilder();
+        builder.and(problem.useFlag.eq(YNFlag.Y));
 
         // 검색어 조건
         if (StringUtils.isNotBlank(search.getTitle())) {
