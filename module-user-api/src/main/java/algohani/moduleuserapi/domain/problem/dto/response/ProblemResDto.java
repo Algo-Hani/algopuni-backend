@@ -11,7 +11,8 @@ public class ProblemResDto {
         String title,
         int level,
         int successCount,
-        int successRate
+        int successRate,
+        boolean isFavorite
     ) {
 
     }

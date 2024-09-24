@@ -65,7 +65,7 @@ class ProblemControllerTest {
         @DisplayName("성공")
         void 성공() throws Exception {
             // given
-            ProblemResDto.Search resDto = new Search(1L, "title", 1, 1, 1);
+            ProblemResDto.Search resDto = new Search(1L, "title", 1, 1, 1, true);
 
             given(problemService.getProblemsWithPaging(any())).willReturn(new PageResponseDto<>(1, 20, 10, 200, Collections.singletonList(resDto)));
 
@@ -77,7 +77,7 @@ class ProblemControllerTest {
                 .param("languages", "C", "JAVA", "PYTHON2", "PYTHON3", "JAVASCRIPT")
                 .param("statuses", "UNSOLVED", "SOLVING", "SOLVED_SELF", "SOLVED_WITH_HELP")
                 .param("order", "RECENT")
-                .param("bookmarked", "Y")
+                .param("favorite", "Y")
                 .contentType(MediaType.APPLICATION_JSON)
             );
 
@@ -105,7 +105,7 @@ class ProblemControllerTest {
                                 parameterWithName("languages").optional().description("언어(C, JAVA, PYTHON2, PYTHON3, JAVASCRIPT) - 복수 선택 가능"),
                                 parameterWithName("statuses").optional().description("상태(UNSOLVED, SOLVING, SOLVED_SELF, SOLVED_WITH_HELP) - 복수 선택 가능"),
                                 parameterWithName("order").optional().description("정렬(RECENT, ACCEPTANCE_DESC, ACCEPTANCE_ASC) - 기본값: RECENT"),
-                                parameterWithName("bookmarked").optional().description("북마크 여부(Y/N) - 기본값: N")
+                                parameterWithName("favorite").optional().description("즐겨찾기 여부(Y/N) - Y면 즐겨찾기한 문제만, N이면 즐겨찾기하지 않은 문제만, Null이면 전체 문제 조회")
                             )
                             .responseFields(
                                 fields.withPath("status").description("상태"),
@@ -119,7 +119,8 @@ class ProblemControllerTest {
                                 fields.withPath("data.result[].title").description("문제명"),
                                 fields.withPath("data.result[].level").type(SimpleType.NUMBER).description("레벨"),
                                 fields.withPath("data.result[].successCount").type(SimpleType.NUMBER).description("성공 수"),
-                                fields.withPath("data.result[].successRate").type(SimpleType.NUMBER).description("성공률")
+                                fields.withPath("data.result[].successRate").type(SimpleType.NUMBER).description("성공률"),
+                                fields.withPath("data.result[].isFavorite").type(SimpleType.BOOLEAN).description("즐겨찾기 여부")
                             )
                             .requestSchema(Schema.schema("ProblemReqDto.Search"))
                             .responseSchema(Schema.schema("ApiResponse"))

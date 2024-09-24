@@ -53,7 +53,7 @@ class ProblemServiceTest {
         @DisplayName("성공")
         void 성공() {
             // given
-            ProblemResDto.Search search = new Search(1L, "title", 1, 1, 1);
+            ProblemResDto.Search search = new Search(1L, "title", 1, 1, 1, true);
 
             given(problemRepository.findProblemWithPaging(any())).willReturn(new PageResponseDto<>(10, 10, 10, 10, Collections.singletonList(search)));
 

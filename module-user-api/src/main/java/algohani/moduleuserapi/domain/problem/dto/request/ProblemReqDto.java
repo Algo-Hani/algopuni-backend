@@ -32,10 +32,10 @@ public class ProblemReqDto {
 
         private final ProblemOrder order;
 
-        private final YNFlag bookmarked;
+        private final YNFlag favorite;
 
         @Builder
-        public Search(String title, Long page, List<Integer> levels, List<String> languages, List<String> statuses, String order, String bookmarked) {
+        public Search(String title, Long page, List<Integer> levels, List<String> languages, List<String> statuses, String order, String favorite) {
             super(page, 20L);
 
             this.title = StringUtils.defaultString(title);
@@ -49,7 +49,7 @@ public class ProblemReqDto {
                 .filter(Objects::nonNull)
                 .toList();
             this.order = ProblemOrder.of(order);
-            this.bookmarked = YNFlag.of(bookmarked);
+            this.favorite = YNFlag.of(favorite);
         }
 
         /**
