@@ -6,15 +6,22 @@ import static com.epages.restdocs.apispec.ResourceDocumentation.resource;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
+import static org.mockito.BDDMockito.willDoNothing;
+import static org.mockito.BDDMockito.willThrow;
+import static org.springframework.restdocs.payload.PayloadDocumentation.fieldWithPath;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import algohani.common.dto.ApiResponse.Status;
 import algohani.common.dto.PageResponseDto;
+import algohani.common.exception.CustomException;
 import algohani.moduleuserapi.domain.problem.dto.request.ProblemReqDto;
 import algohani.moduleuserapi.domain.problem.dto.response.ProblemResDto;
 import algohani.moduleuserapi.domain.problem.dto.response.ProblemResDto.Search;
 import algohani.moduleuserapi.domain.problem.service.ProblemService;
+import algohani.moduleuserapi.global.dto.ResponseText;
+import algohani.moduleuserapi.global.exception.ErrorCode;
 import algohani.moduleuserapi.restdocs.ApiDocumentUtils;
 import com.epages.restdocs.apispec.ConstrainedFields;
 import com.epages.restdocs.apispec.ResourceSnippetParameters;
@@ -122,6 +129,200 @@ class ProblemControllerTest {
                 );
 
             then(problemService).should().getProblemsWithPaging(any());
+        }
+    }
+
+    @Nested
+    @DisplayName("문제 즐겨찾기 추가 API")
+    class 문제_즐겨찾기_추가_API {
+
+        private final long problemId = 1L;
+
+        @Test
+        @DisplayName("성공")
+        void 성공() throws Exception {
+            // given
+            willDoNothing().given(problemService).addFavoriteProblem(problemId);
+
+            // when & then
+            ResultActions actions = mockMvc.perform(RestDocumentationRequestBuilders.post("/api/v1/problems/{problemId}/favorite", problemId)
+                .contentType(MediaType.APPLICATION_JSON)
+                .with(csrf().asHeader())
+            );
+
+            actions
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value(Status.SUCCESS.name()))
+                .andExpect(jsonPath("$.statusCode").value(200))
+                .andExpect(jsonPath("$.message").value(ResponseText.ADD_FAVORITE_SUCCESS.getMessage()));
+
+            actions
+                .andDo(document("문제 즐겨찾기 추가 성공",
+                        ApiDocumentUtils.getNoAuthDocumentRequest(),
+                        ApiDocumentUtils.getDocumentResponse(),
+                        resource(ResourceSnippetParameters.builder()
+                            .tag("문제")
+                            .description("문제 즐겨찾기 추가 API")
+                            .pathParameters(
+                                parameterWithName("problemId").description("문제 ID")
+                            )
+                            .responseFields(
+                                fieldWithPath("status").description("상태"),
+                                fieldWithPath("statusCode").description("상태 코드"),
+                                fieldWithPath("message").description("메시지"),
+                                fieldWithPath("timestamp").description("타임스탬프")
+                            )
+                            .responseSchema(Schema.schema("ApiResponse"))
+                            .build()
+                        )
+                    )
+                );
+
+            then(problemService).should().addFavoriteProblem(problemId);
+        }
+
+        @Test
+        @DisplayName("실패 - 문제가 없는 경우")
+        void ₩실패_문제가_없는_경우() throws Exception {
+            // given
+            willThrow(new CustomException(ErrorCode.PROBLEM_NOT_FOUND)).given(problemService).addFavoriteProblem(problemId);
+
+            // when & then
+            ResultActions actions = mockMvc.perform(RestDocumentationRequestBuilders.post("/api/v1/problems/{problemId}/favorite", problemId)
+                .contentType(MediaType.APPLICATION_JSON)
+                .with(csrf().asHeader())
+            );
+
+            actions
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.status").value(Status.ERROR.name()))
+                .andExpect(jsonPath("$.statusCode").value(400))
+                .andExpect(jsonPath("$.message").value(ErrorCode.PROBLEM_NOT_FOUND.getMessage()))
+                .andExpect(jsonPath("$.errorName").value(ErrorCode.PROBLEM_NOT_FOUND.getName()))
+                .andExpect(jsonPath("$.errorCode").value(ErrorCode.PROBLEM_NOT_FOUND.getCode()));
+
+            actions
+                .andDo(document("문제 즐겨찾기 추가 실패 - 문제가 없는 경우",
+                        ApiDocumentUtils.getNoAuthDocumentRequest(),
+                        ApiDocumentUtils.getDocumentResponse(),
+                        resource(ResourceSnippetParameters.builder()
+                            .tag("문제")
+                            .description("문제 즐겨찾기 추가 API")
+                            .pathParameters(
+                                parameterWithName("problemId").description("문제 ID")
+                            )
+                            .responseFields(
+                                fieldWithPath("status").description("상태"),
+                                fieldWithPath("statusCode").description("상태 코드"),
+                                fieldWithPath("message").description("메시지"),
+                                fieldWithPath("errorName").description("에러 이름"),
+                                fieldWithPath("errorCode").description("에러 코드"),
+                                fieldWithPath("timestamp").description("타임스탬프")
+                            )
+                            .responseSchema(Schema.schema("ApiResponse"))
+                            .build()
+                        )
+                    )
+                );
+
+            then(problemService).should().addFavoriteProblem(problemId);
+        }
+    }
+
+    @Nested
+    @DisplayName("문제 즐겨찾기 해제 API")
+    class 문제_즐겨찾기_해제_API {
+
+        private final long problemId = 1L;
+
+        @Test
+        @DisplayName("성공")
+        void 성공() throws Exception {
+            // given
+            willDoNothing().given(problemService).removeFavoriteProblem(problemId);
+
+            // when & then
+            ResultActions actions = mockMvc.perform(RestDocumentationRequestBuilders.delete("/api/v1/problems/{problemId}/favorite", problemId)
+                .contentType(MediaType.APPLICATION_JSON)
+                .with(csrf().asHeader())
+            );
+
+            actions
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value(Status.SUCCESS.name()))
+                .andExpect(jsonPath("$.statusCode").value(200))
+                .andExpect(jsonPath("$.message").value(ResponseText.REMOVE_FAVORITE_SUCCESS.getMessage()));
+
+            actions
+                .andDo(document("문제 즐겨찾기 해제 성공",
+                        ApiDocumentUtils.getNoAuthDocumentRequest(),
+                        ApiDocumentUtils.getDocumentResponse(),
+                        resource(ResourceSnippetParameters.builder()
+                            .tag("문제")
+                            .description("문제 즐겨찾기 해제 API")
+                            .pathParameters(
+                                parameterWithName("problemId").description("문제 ID")
+                            )
+                            .responseFields(
+                                fieldWithPath("status").description("상태"),
+                                fieldWithPath("statusCode").description("상태 코드"),
+                                fieldWithPath("message").description("메시지"),
+                                fieldWithPath("timestamp").description("타임스탬프")
+                            )
+                            .responseSchema(Schema.schema("ApiResponse"))
+                            .build()
+                        )
+                    )
+                );
+
+            then(problemService).should().removeFavoriteProblem(problemId);
+        }
+
+        @Test
+        @DisplayName("실패 - 문제가 없는 경우")
+        void 실패_문제가_없는_경우() throws Exception {
+            // given
+            willThrow(new CustomException(ErrorCode.PROBLEM_NOT_FOUND)).given(problemService).removeFavoriteProblem(problemId);
+
+            // when & then
+            ResultActions actions = mockMvc.perform(RestDocumentationRequestBuilders.delete("/api/v1/problems/{problemId}/favorite", problemId)
+                .contentType(MediaType.APPLICATION_JSON)
+                .with(csrf().asHeader())
+            );
+
+            actions
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.status").value(Status.ERROR.name()))
+                .andExpect(jsonPath("$.statusCode").value(400))
+                .andExpect(jsonPath("$.message").value(ErrorCode.PROBLEM_NOT_FOUND.getMessage()))
+                .andExpect(jsonPath("$.errorName").value(ErrorCode.PROBLEM_NOT_FOUND.getName()))
+                .andExpect(jsonPath("$.errorCode").value(ErrorCode.PROBLEM_NOT_FOUND.getCode()));
+
+            actions
+                .andDo(document("문제 즐겨찾기 해제 실패 - 문제가 없는 경우",
+                        ApiDocumentUtils.getNoAuthDocumentRequest(),
+                        ApiDocumentUtils.getDocumentResponse(),
+                        resource(ResourceSnippetParameters.builder()
+                            .tag("문제")
+                            .description("문제 즐겨찾기 해제 API")
+                            .pathParameters(
+                                parameterWithName("problemId").description("문제 ID")
+                            )
+                            .responseFields(
+                                fieldWithPath("status").description("상태"),
+                                fieldWithPath("statusCode").description("상태 코드"),
+                                fieldWithPath("message").description("메시지"),
+                                fieldWithPath("errorName").description("에러 이름"),
+                                fieldWithPath("errorCode").description("에러 코드"),
+                                fieldWithPath("timestamp").description("타임스탬프")
+                            )
+                            .responseSchema(Schema.schema("ApiResponse"))
+                            .build()
+                        )
+                    )
+                );
+
+            then(problemService).should().removeFavoriteProblem(problemId);
         }
     }
 }
