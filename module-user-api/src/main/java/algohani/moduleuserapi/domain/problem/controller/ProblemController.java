@@ -3,7 +3,7 @@ package algohani.moduleuserapi.domain.problem.controller;
 import algohani.common.dto.ApiResponse;
 import algohani.common.dto.PageResponseDto;
 import algohani.moduleuserapi.domain.problem.dto.request.ProblemReqDto;
-import algohani.moduleuserapi.domain.problem.dto.response.ProblemResDto.Search;
+import algohani.moduleuserapi.domain.problem.dto.response.ProblemResDto;
 import algohani.moduleuserapi.domain.problem.service.ProblemService;
 import algohani.moduleuserapi.global.dto.ResponseText;
 import lombok.RequiredArgsConstructor;
@@ -26,7 +26,7 @@ public class ProblemController {
      * 문제 목록 조회 API
      */
     @GetMapping
-    public ResponseEntity<ApiResponse<PageResponseDto<Search>>> search(ProblemReqDto.Search search) {
+    public ResponseEntity<ApiResponse<PageResponseDto<ProblemResDto.Search>>> search(ProblemReqDto.Search search) {
         return ApiResponse.success(problemService.getProblemsWithPaging(search));
     }
 
