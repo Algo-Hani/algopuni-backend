@@ -17,7 +17,11 @@ public enum ResponseText implements BaseResponseText {
     LOGOUT_SUCCESS(HttpStatus.OK, "로그아웃에 성공했습니다."),
 
     // 토큰 관련 응답 메시지
-    ACCESS_TOKEN_REFRESHED(HttpStatus.OK, "Access Token이 갱신되었습니다.");
+    ACCESS_TOKEN_REFRESHED(HttpStatus.OK, "Access Token이 갱신되었습니다."),
+
+    // 문제 관련 응답 메시지
+    ADD_FAVORITE_SUCCESS(HttpStatus.OK, "즐겨찾기 추가가 완료되었습니다."),
+    REMOVE_FAVORITE_SUCCESS(HttpStatus.OK, "즐겨찾기 해제가 완료되었습니다.");
 
     private final HttpStatus httpStatus;
 
