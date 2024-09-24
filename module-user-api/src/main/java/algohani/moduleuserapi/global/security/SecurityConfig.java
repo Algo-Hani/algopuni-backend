@@ -30,6 +30,7 @@ public class SecurityConfig {
         "/api/v1/auth/email-verification/**",
         "/api/v1/auth/login",
         "/api/v1/auth/refresh",
+        "/api/v1/problems",
         "/docs/swagger-ui/**",
         "/docs/openapi3.yaml",
         "/v3/api-docs/swagger-config",
