@@ -4,6 +4,7 @@ import static algohani.common.entity.QLanguage.language;
 import static algohani.common.entity.QProblem.problem;
 
 import algohani.common.dto.PageResponseDto;
+import algohani.common.entity.Problem;
 import algohani.common.enums.YNFlag;
 import algohani.moduleuserapi.domain.problem.dto.request.ProblemReqDto;
 import algohani.moduleuserapi.domain.problem.dto.response.ProblemResDto;
@@ -28,6 +29,16 @@ public class ProblemRepositoryCustomImpl implements ProblemRepositoryCustom {
         final long totalElements = getTotalElements(search);
 
         return PageResponseDto.of(search, totalElements, result);
+    }
+
+    @Override
+    public Optional<Problem> findUsingById(final long problemId) {
+        return Optional.ofNullable(
+            queryFactory.selectFrom(problem)
+                .where(problem.problemId.eq(problemId)
+                    .and(problem.useFlag.eq(YNFlag.Y)))
+                .fetchOne()
+        );
     }
 
     /**

@@ -12,6 +12,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.OneToMany;
 import java.util.List;
 import lombok.AccessLevel;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
@@ -80,4 +81,18 @@ public class Problem extends BaseEntity {
 
     @OneToMany(mappedBy = "problem")
     private List<Language> languages;
+
+    @Builder
+    public Problem(String title, String description, String restriction, String ioExample, String ioDescription, int timeLimit, int memoryLimit, int level, ParameterType returnType, YNFlag useFlag) {
+        this.title = title;
+        this.description = description;
+        this.restriction = restriction;
+        this.ioExample = ioExample;
+        this.ioDescription = ioDescription;
+        this.timeLimit = timeLimit;
+        this.memoryLimit = memoryLimit;
+        this.level = level;
+        this.returnType = returnType;
+        this.useFlag = useFlag;
+    }
 }
