@@ -52,10 +52,6 @@ dependencies {
 
     // P6Spy
     implementation 'com.github.gavlyukovskiy:p6spy-spring-boot-starter:1.9.1'
-
-    // AWS SES
-    implementation 'software.amazon.awssdk:ses:2.28.8'
-
 }
 
 test {

@@ -8,6 +8,22 @@ spring:
         url: ENC(Noly4WVAQDXKB5NcO7f9ryzyQ0gX4XkWct4t92U7OySH5ji392yhP65cQ0VOQypaq5NoMUpBnm/EHterr1/YlZ0ukpx4zNl1wXeRe7Fld0NJyw60JzmEmHgWc0VZiv2QnOHFOCYR8VM=)
         username: ENC(UTggmUFFsw/1T9WXYPZnVQ==)
         password: ENC(chMnRg6a7qFnk+u045AOvKYv9qey7lwA)
+    mail: # 메일 설정
+        host: smtp.naver.com
+        port: 465
+        username: ENC(myPNW+ZeQgdf9B12aFnUCKjkgGpoVp4Mlmt0OX3Whoc=)
+        password: ENC(UEidg4QOaM9dZqpefyV03ak9QfbQu19I)
+        properties:
+            mail:
+                smtp:
+                    auth: true
+                    starttls:
+                        enable: true
+                    ssl:
+                        enable: true
+                    socketFactory:
+                        port: 465
+                        class: javax.net.ssl.SSLSocketFactory
 springdoc: # Rest API 문서화 설정
     default-consumes-media-type: application/json
     default-produces-media-type: application/json

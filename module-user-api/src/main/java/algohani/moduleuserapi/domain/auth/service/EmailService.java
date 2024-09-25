@@ -4,34 +4,33 @@ import algohani.common.utils.RandomUtils;
 import jakarta.mail.MessagingException;
 import jakarta.mail.Session;
 import jakarta.mail.internet.MimeMessage;
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.util.Properties;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.ClassPathResource;
+import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
-import software.amazon.awssdk.core.SdkBytes;
-import software.amazon.awssdk.services.ses.SesAsyncClient;
-import software.amazon.awssdk.services.ses.model.SendRawEmailRequest;
 
 @Service
 @RequiredArgsConstructor
 public class EmailService {
 
-    private static final String FROM = "Algopuni <algopuni@mail.algopuni.site>"; // 보내는 사람 이메일
+    @Value("${spring.mail.username}")
+    private String sender;
 
     private static final String EMAIL_TEMPLATE_PATH = "static/html/signup_email_template.html"; // 이메일 템플릿 경로
 
     private static final String LOGO_PATH = "static/image/logo.png"; // 로고 이미지 경로
 
-    private final SesAsyncClient sesAsyncClient;
-
     private String emailTemplate; // 이메일 템플릿 캐싱
 
+    private final JavaMailSender javaMailSender;
+
     public String sendEmail(final String email) throws MessagingException, IOException {
+
         // 랜덤 코드 생성
         final String randomCode = RandomUtils.generateRandomString(8);
 
@@ -41,23 +40,8 @@ public class EmailService {
         // MimeMessageHelper 생성
         createMimeMessageHelper(message, email, randomCode);
 
-        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-        message.writeTo(outputStream);
-
-        ByteBuffer buf = ByteBuffer.wrap(outputStream.toByteArray());
-
-        byte[] arr = new byte[buf.remaining()];
-        buf.get(arr);
-
-        // SendRawEmailRequest 생성
-        SendRawEmailRequest rawEmailRequest = SendRawEmailRequest.builder()
-            .rawMessage(r ->
-                r.data(SdkBytes.fromByteArray(arr)).build()
-            )
-            .build();
-
         // 이메일 전송
-        sesAsyncClient.sendRawEmail(rawEmailRequest);
+        javaMailSender.send(message);
 
         return randomCode;
     }
@@ -73,7 +57,7 @@ public class EmailService {
      */
     private void createMimeMessageHelper(final MimeMessage message, final String email, final String randomCode) throws MessagingException, IOException {
         MimeMessageHelper messageHelper = new MimeMessageHelper(message, true, "UTF-8");
-        messageHelper.setFrom(FROM);
+        messageHelper.setFrom("Algopuni <" + sender + ">");
         messageHelper.setTo(email);
         messageHelper.setSubject("ALGOPUNI 회원가입 인증 코드");
         messageHelper.setText(getEmailTemplate().replace("{{verification_code}}", randomCode), true);
