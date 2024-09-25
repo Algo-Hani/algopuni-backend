@@ -5,7 +5,6 @@ import algohani.common.utils.CookieUtils;
 import algohani.moduleuserapi.domain.auth.dto.response.TokenDto;
 import algohani.moduleuserapi.domain.auth.dto.response.TokenDto.RefreshTokenDto;
 import algohani.moduleuserapi.global.security.jwt.JwtTokenProvider;
-import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
@@ -44,8 +43,7 @@ public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
         valueOperations.set(authentication.getName(), refreshTokenDto.refreshToken(), refreshTokenDto.getExpiresInSecond(), TimeUnit.SECONDS);
 
         // Refresh Token을 쿠키에 담아서 전달
-        Cookie cookie = CookieUtils.createCookie(TokenName.USER_REFRESH_TOKEN.name(), refreshTokenDto.refreshToken(), refreshTokenDto.getExpiresInSecond());
-        response.addCookie(cookie);
+        CookieUtils.createCookie(TokenName.USER_REFRESH_TOKEN.name(), refreshTokenDto.refreshToken(), refreshTokenDto.getExpiresInSecond(), response);
 
         response.sendRedirect(redirectUrl + "/oauth2-login-success?accessToken=" + tokenDto.accessToken().accessToken());
     }
