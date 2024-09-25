@@ -6,10 +6,13 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
 import static org.mockito.BDDMockito.willDoNothing;
+import static org.mockito.Mockito.mockStatic;
 
 import algohani.common.entity.Member;
 import algohani.common.enums.SocialType;
+import algohani.common.enums.TokenName;
 import algohani.common.exception.CustomException;
+import algohani.common.utils.CookieUtils;
 import algohani.moduleuserapi.domain.auth.dto.request.LoginReqDto;
 import algohani.moduleuserapi.domain.auth.dto.response.TokenDto;
 import algohani.moduleuserapi.domain.auth.dto.response.TokenDto.AccessTokenDto;
@@ -17,6 +20,7 @@ import algohani.moduleuserapi.domain.auth.dto.response.TokenDto.RefreshTokenDto;
 import algohani.moduleuserapi.domain.auth.repository.MemberRepository;
 import algohani.moduleuserapi.global.exception.ErrorCode;
 import algohani.moduleuserapi.global.security.jwt.JwtTokenProvider;
+import jakarta.servlet.http.Cookie;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.Optional;
@@ -26,6 +30,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.ValueOperations;
@@ -96,15 +101,21 @@ class LoginServiceTest {
             willDoNothing().given(valueOperations).set(any(), any(), any(Long.class), any());
 
             // when
-            AccessTokenDto result = loginService.login(loginReqDto, response);
+            try (MockedStatic<CookieUtils> util = mockStatic(CookieUtils.class)) {
+                util.when(() -> CookieUtils.createCookie(TokenName.USER_REFRESH_TOKEN.name(), refreshTokenDto.refreshToken(), refreshTokenDto.getExpiresInSecond())).thenReturn(new Cookie("name", "value"));
+
+                AccessTokenDto result = loginService.login(loginReqDto, response);
+
+                assertThat(result).isNotNull().isEqualTo(accessTokenDto);
+                then(memberRepository).should().findById(any());
+                then(passwordEncoder).should().matches(any(), any());
+                then(jwtTokenProvider).should().generateToken(any());
+                then(redisTemplate).should().opsForValue();
+                then(valueOperations).should().set(any(), any(), any(Long.class), any());
+            }
 
             // then
-            assertThat(result).isNotNull().isEqualTo(accessTokenDto);
-            then(memberRepository).should().findById(any());
-            then(passwordEncoder).should().matches(any(), any());
-            then(jwtTokenProvider).should().generateToken(any());
-            then(redisTemplate).should().opsForValue();
-            then(valueOperations).should().set(any(), any(), any(Long.class), any());
+
         }
 
         @Test
