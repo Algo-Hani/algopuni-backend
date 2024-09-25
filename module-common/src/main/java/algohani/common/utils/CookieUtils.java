@@ -1,9 +1,13 @@
 package algohani.common.utils;
 
 import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import java.util.Objects;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
 
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class CookieUtils {
@@ -17,12 +21,10 @@ public class CookieUtils {
      * @return 생성된 쿠키
      */
     public static Cookie createCookie(final String cookieName, final String value, final int maxAge) {
-        // 프로필에 따라 쿠키 속성 변경
-        String profile = ApplicationContextProvider.getActiveProfile();
-
+        final boolean isProd = isProd();
         Cookie cookie = new Cookie(cookieName, value);
-        cookie.setHttpOnly(profile.equals("prod"));
-        cookie.setSecure(profile.equals("prod"));
+        cookie.setHttpOnly(isProd);
+        cookie.setSecure(isProd);
         cookie.setMaxAge(maxAge);
         cookie.setPath("/");
 
@@ -54,15 +56,25 @@ public class CookieUtils {
      * 쿠키 삭제
      */
     public static void removeCookie(final String cookieName, final HttpServletResponse response) {
-        // 프로필에 따라 쿠키 속성 변경
-        String profile = ApplicationContextProvider.getActiveProfile();
-
+        final boolean isProd = isProd();
         Cookie cookie = new Cookie(cookieName, null);
-        cookie.setHttpOnly(profile.equals("prod"));
-        cookie.setSecure(profile.equals("prod"));
+        cookie.setHttpOnly(isProd);
+        cookie.setSecure(isProd);
         cookie.setMaxAge(0);
         cookie.setPath("/");
 
         response.addCookie(cookie);
+    }
+
+
+    /**
+     * 프로덕션 환경 여부 확인
+     *
+     * @return 프로덕션 환경 여부
+     */
+    private static boolean isProd() {
+        HttpServletRequest servletRequest = ((ServletRequestAttributes) Objects.requireNonNull(RequestContextHolder.getRequestAttributes())).getRequest();
+        final String origin = servletRequest.getHeader("Origin");
+        return origin != null && origin.equals("https://www.algopuni.site");
     }
 }
