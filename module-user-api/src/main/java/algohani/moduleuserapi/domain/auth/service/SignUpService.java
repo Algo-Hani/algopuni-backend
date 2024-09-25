@@ -8,14 +8,15 @@ import algohani.moduleuserapi.domain.auth.entity.EmailCode;
 import algohani.moduleuserapi.domain.auth.repository.EmailCodeRepository;
 import algohani.moduleuserapi.domain.auth.repository.MemberRepository;
 import algohani.moduleuserapi.global.exception.ErrorCode;
-import jakarta.mail.MessagingException;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class SignUpService {
 
     private final EmailService emailService;
@@ -93,7 +94,8 @@ public class SignUpService {
         String randomCode;
         try {
             randomCode = emailService.sendEmail(email);
-        } catch (MessagingException e) {
+        } catch (Exception e) {
+            log.error("인증번호 전송 실패", e);
             throw new CustomException(ErrorCode.FAILED_TO_SEND_EMAIL);
         }
 
