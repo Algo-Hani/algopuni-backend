@@ -20,7 +20,6 @@ import algohani.moduleuserapi.domain.auth.dto.response.TokenDto.RefreshTokenDto;
 import algohani.moduleuserapi.domain.auth.repository.MemberRepository;
 import algohani.moduleuserapi.global.exception.ErrorCode;
 import algohani.moduleuserapi.global.security.jwt.JwtTokenProvider;
-import jakarta.servlet.http.Cookie;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.Optional;
@@ -102,7 +101,7 @@ class LoginServiceTest {
 
             // when
             try (MockedStatic<CookieUtils> util = mockStatic(CookieUtils.class)) {
-                util.when(() -> CookieUtils.createCookie(TokenName.USER_REFRESH_TOKEN.name(), refreshTokenDto.refreshToken(), refreshTokenDto.getExpiresInSecond())).thenReturn(new Cookie("name", "value"));
+                CookieUtils.createCookie(TokenName.USER_REFRESH_TOKEN.name(), refreshTokenDto.refreshToken(), refreshTokenDto.getExpiresInSecond(), new MockHttpServletResponse());
 
                 AccessTokenDto result = loginService.login(loginReqDto, response);
 

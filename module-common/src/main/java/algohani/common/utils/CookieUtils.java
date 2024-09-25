@@ -6,6 +6,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import java.util.Objects;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
+import org.springframework.http.ResponseCookie;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 
@@ -18,17 +19,20 @@ public class CookieUtils {
      * @param cookieName 쿠키명
      * @param value      쿠키값
      * @param maxAge     쿠키 만료 시간
-     * @return 생성된 쿠키
+     * @param response   HttpServletResponse
      */
-    public static Cookie createCookie(final String cookieName, final String value, final int maxAge) {
+    public static void createCookie(final String cookieName, final String value, final int maxAge, final HttpServletResponse response) {
         final boolean isProd = isProd();
-        Cookie cookie = new Cookie(cookieName, value);
-        cookie.setHttpOnly(isProd);
-        cookie.setSecure(isProd);
-        cookie.setMaxAge(maxAge);
-        cookie.setPath("/");
 
-        return cookie;
+        ResponseCookie cookie = ResponseCookie.from(cookieName, value)
+            .httpOnly(isProd)
+            .secure(true)
+            .sameSite("Lax")
+            .maxAge(maxAge)
+            .path("/")
+            .build();
+
+        response.addHeader("Set-Cookie", cookie.toString());
     }
 
     /**
