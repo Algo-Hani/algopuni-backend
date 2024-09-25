@@ -17,9 +17,12 @@ public class CookieUtils {
      * @return 생성된 쿠키
      */
     public static Cookie createCookie(final String cookieName, final String value, final int maxAge) {
+        // 프로필에 따라 쿠키 속성 변경
+        String profile = ApplicationContextProvider.getActiveProfile();
+
         Cookie cookie = new Cookie(cookieName, value);
-        cookie.setHttpOnly(true);
-        cookie.setSecure(true);
+        cookie.setHttpOnly(profile.equals("prod"));
+        cookie.setSecure(profile.equals("prod"));
         cookie.setMaxAge(maxAge);
         cookie.setPath("/");
 
@@ -51,9 +54,12 @@ public class CookieUtils {
      * 쿠키 삭제
      */
     public static void removeCookie(final String cookieName, final HttpServletResponse response) {
+        // 프로필에 따라 쿠키 속성 변경
+        String profile = ApplicationContextProvider.getActiveProfile();
+
         Cookie cookie = new Cookie(cookieName, null);
-        cookie.setHttpOnly(true);
-        cookie.setSecure(true);
+        cookie.setHttpOnly(profile.equals("prod"));
+        cookie.setSecure(profile.equals("prod"));
         cookie.setMaxAge(0);
         cookie.setPath("/");
 
