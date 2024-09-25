@@ -5,11 +5,12 @@ import jakarta.mail.MessagingException;
 import jakarta.mail.Session;
 import jakarta.mail.internet.MimeMessage;
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.Properties;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.core.io.ResourceLoader;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
@@ -21,15 +22,13 @@ public class EmailService {
     @Value("${spring.mail.username}")
     private String sender;
 
-    private static final String EMAIL_TEMPLATE_PATH = "classpath:static/html/signup_email_template.html"; // 이메일 템플릿 경로
+    private static final String EMAIL_TEMPLATE_PATH = "static/html/signup_email_template.html"; // 이메일 템플릿 경로
 
-    private static final String LOGO_PATH = "classpath:static/image/logo.png"; // 로고 이미지 경로
+    private static final String LOGO_PATH = "static/image/logo.png"; // 로고 이미지 경로
 
     private String emailTemplate; // 이메일 템플릿 캐싱
 
     private final JavaMailSender javaMailSender;
-
-    private final ResourceLoader resourceLoader;
 
     public String sendEmail(final String email) throws MessagingException, IOException {
 
@@ -63,7 +62,7 @@ public class EmailService {
         messageHelper.setTo(email);
         messageHelper.setSubject("ALGOPUNI 회원가입 인증 코드");
         messageHelper.setText(getEmailTemplate().replace("{{verification_code}}", randomCode), true);
-        messageHelper.addInline("image", resourceLoader.getResource(LOGO_PATH).getFile());
+        messageHelper.addInline("image", new ClassPathResource(LOGO_PATH));
     }
 
     /**
@@ -74,7 +73,10 @@ public class EmailService {
      */
     private String getEmailTemplate() throws IOException {
         if (emailTemplate == null) {
-            emailTemplate = new String(resourceLoader.getResource(EMAIL_TEMPLATE_PATH).getInputStream().readAllBytes(), StandardCharsets.UTF_8);
+            ClassPathResource resource = new ClassPathResource(EMAIL_TEMPLATE_PATH);
+            try (InputStream in = resource.getInputStream()) {
+                emailTemplate = new String(in.readAllBytes(), StandardCharsets.UTF_8);
+            }
         }
         return emailTemplate;
     }
