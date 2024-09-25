@@ -15,6 +15,7 @@ import algohani.moduleuserapi.domain.auth.repository.EmailCodeRepository;
 import algohani.moduleuserapi.domain.auth.repository.MemberRepository;
 import algohani.moduleuserapi.global.exception.ErrorCode;
 import jakarta.mail.MessagingException;
+import java.io.IOException;
 import java.util.Optional;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -53,7 +54,7 @@ class SignUpServiceTest {
 
         @Test
         @DisplayName("성공")
-        void 성공() throws MessagingException {
+        void 성공() throws MessagingException, IOException {
             // given
             given(memberRepository.findById(any())).willReturn(Optional.empty());
             given(emailService.sendEmail(send.email())).willReturn("randomCode");
@@ -86,7 +87,7 @@ class SignUpServiceTest {
 
         @Test
         @DisplayName("실패 - 이메일 전송 실패")
-        void 실패_이메일_전송_실패() throws MessagingException {
+        void 실패_이메일_전송_실패() throws MessagingException, IOException {
             // given
             given(memberRepository.findById(any())).willReturn(Optional.empty());
             given(emailService.sendEmail(send.email())).willThrow(MessagingException.class);
