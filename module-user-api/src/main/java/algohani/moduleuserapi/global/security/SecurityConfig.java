@@ -18,6 +18,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.web.cors.CorsUtils;
 
 @Configuration
 @EnableWebSecurity
@@ -70,6 +71,7 @@ public class SecurityConfig {
         // 인증 및 권한 설정
         http.authorizeHttpRequests(authorizeRequests -> authorizeRequests
             .requestMatchers(PERMIT_ALL).permitAll()
+            .requestMatchers(CorsUtils::isPreFlightRequest).permitAll()
             .anyRequest().authenticated()
         );
 
