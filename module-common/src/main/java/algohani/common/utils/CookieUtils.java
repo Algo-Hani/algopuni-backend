@@ -22,12 +22,10 @@ public class CookieUtils {
      * @param response   HttpServletResponse
      */
     public static void createCookie(final String cookieName, final String value, final int maxAge, final HttpServletResponse response) {
-        final boolean isProd = isProd();
-
         ResponseCookie cookie = ResponseCookie.from(cookieName, value)
-            .httpOnly(isProd)
+            .httpOnly(true)
             .secure(true)
-            .sameSite("Lax")
+            .sameSite("None")
             .maxAge(maxAge)
             .path("/")
             .build();
@@ -60,14 +58,15 @@ public class CookieUtils {
      * 쿠키 삭제
      */
     public static void removeCookie(final String cookieName, final HttpServletResponse response) {
-        final boolean isProd = isProd();
-        Cookie cookie = new Cookie(cookieName, null);
-        cookie.setHttpOnly(isProd);
-        cookie.setSecure(isProd);
-        cookie.setMaxAge(0);
-        cookie.setPath("/");
+        ResponseCookie cookie = ResponseCookie.from(cookieName, "")
+            .httpOnly(true)
+            .secure(true)
+            .sameSite("None")
+            .maxAge(0)
+            .path("/")
+            .build();
 
-        response.addCookie(cookie);
+        response.addHeader("Set-Cookie", cookie.toString());
     }
 
 
