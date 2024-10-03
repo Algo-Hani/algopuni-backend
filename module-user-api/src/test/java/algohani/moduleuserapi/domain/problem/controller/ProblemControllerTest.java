@@ -4,6 +4,7 @@ import static com.epages.restdocs.apispec.MockMvcRestDocumentationWrapper.docume
 import static com.epages.restdocs.apispec.ResourceDocumentation.parameterWithName;
 import static com.epages.restdocs.apispec.ResourceDocumentation.resource;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
 import static org.mockito.BDDMockito.willDoNothing;
@@ -15,6 +16,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import algohani.common.dto.ApiResponse.Status;
 import algohani.common.dto.PageResponseDto;
+import algohani.common.enums.LanguageType;
 import algohani.common.exception.CustomException;
 import algohani.moduleuserapi.domain.problem.dto.request.ProblemReqDto;
 import algohani.moduleuserapi.domain.problem.dto.response.ProblemResDto;
@@ -324,6 +326,175 @@ class ProblemControllerTest {
                 );
 
             then(problemService).should().removeFavoriteProblem(problemId);
+        }
+    }
+
+    @Nested
+    @DisplayName("문제 상세 조회 API")
+    class 문제_상세_조회_API {
+
+        private final long problemId = 1L;
+
+        private final String language = "JAVA";
+
+        @Test
+        @DisplayName("성공")
+        void 성공() throws Exception {
+            // given
+            ProblemResDto.RelatedInfo resDto = new ProblemResDto.RelatedInfo("title", "description", "restriction", "ioExample", "ioDescription", Collections.singletonList(LanguageType.JAVA), true);
+
+            given(problemService.getProblem(anyLong(), any())).willReturn(resDto);
+
+            // when & then
+            ResultActions actions = mockMvc.perform(RestDocumentationRequestBuilders.get("/api/v1/problems/{problemId}", problemId)
+                .param("language", language)
+                .contentType(MediaType.APPLICATION_JSON)
+            );
+
+            actions
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value(Status.SUCCESS.name()))
+                .andExpect(jsonPath("$.statusCode").value(200))
+                .andExpect(jsonPath("$.data.title").value("title"))
+                .andExpect(jsonPath("$.data.description").value("description"))
+                .andExpect(jsonPath("$.data.restriction").value("restriction"))
+                .andExpect(jsonPath("$.data.ioExample").value("ioExample"))
+                .andExpect(jsonPath("$.data.ioDescription").value("ioDescription"))
+                .andExpect(jsonPath("$.data.languageTypes").isArray())
+                .andExpect(jsonPath("$.data.isFavorite").value(true));
+
+            actions
+                .andDo(document("문제 상세 조회",
+                        ApiDocumentUtils.getNoAuthDocumentRequest(),
+                        ApiDocumentUtils.getDocumentResponse(),
+                        resource(ResourceSnippetParameters.builder()
+                            .tag("문제")
+                            .description("문제 상세 조회 API")
+                            .pathParameters(
+                                parameterWithName("problemId").description("문제 ID")
+                            )
+                            .queryParameters(
+                                parameterWithName("language").optional().description("언어")
+                            )
+                            .responseFields(
+                                fieldWithPath("status").description("상태"),
+                                fieldWithPath("statusCode").description("상태 코드"),
+                                fieldWithPath("timestamp").description("타임스탬프"),
+                                fieldWithPath("data.title").description("제목"),
+                                fieldWithPath("data.description").description("설명"),
+                                fieldWithPath("data.restriction").description("제한 사항"),
+                                fieldWithPath("data.ioExample").description("입출력 예시"),
+                                fieldWithPath("data.ioDescription").description("입출력 설명"),
+                                fieldWithPath("data.languageTypes").description("언어 타입"),
+                                fieldWithPath("data.isFavorite").description("즐겨찾기 여부")
+                            )
+                            .responseSchema(Schema.schema("ProblemResDto.RelatedInfo"))
+                            .build()
+                        )
+                    )
+                );
+
+            then(problemService).should().getProblem(anyLong(), any());
+        }
+
+        @Test
+        @DisplayName("실패 - 문제가 없는 경우")
+        void 실패_문제가_없는_경우() throws Exception {
+            // given
+            willThrow(new CustomException(ErrorCode.PROBLEM_NOT_FOUND)).given(problemService).getProblem(anyLong(), any());
+
+            // when & then
+            ResultActions actions = mockMvc.perform(RestDocumentationRequestBuilders.get("/api/v1/problems/{problemId}", problemId)
+                .param("language", language)
+                .contentType(MediaType.APPLICATION_JSON)
+            );
+
+            actions
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.status").value(Status.ERROR.name()))
+                .andExpect(jsonPath("$.statusCode").value(400))
+                .andExpect(jsonPath("$.message").value(ErrorCode.PROBLEM_NOT_FOUND.getMessage()))
+                .andExpect(jsonPath("$.errorName").value(ErrorCode.PROBLEM_NOT_FOUND.getName()))
+                .andExpect(jsonPath("$.errorCode").value(ErrorCode.PROBLEM_NOT_FOUND.getCode()));
+
+            actions
+                .andDo(document("문제 상세 조회 실패 - 문제가 없는 경우",
+                        ApiDocumentUtils.getNoAuthDocumentRequest(),
+                        ApiDocumentUtils.getDocumentResponse(),
+                        resource(ResourceSnippetParameters.builder()
+                            .tag("문제")
+                            .description("문제 상세 조회 API")
+                            .pathParameters(
+                                parameterWithName("problemId").description("문제 ID")
+                            )
+                            .queryParameters(
+                                parameterWithName("language").optional().description("언어")
+                            )
+                            .responseFields(
+                                fieldWithPath("status").description("상태"),
+                                fieldWithPath("statusCode").description("상태 코드"),
+                                fieldWithPath("message").description("메시지"),
+                                fieldWithPath("errorName").description("에러 이름"),
+                                fieldWithPath("errorCode").description("에러 코드"),
+                                fieldWithPath("timestamp").description("타임스탬프")
+                            )
+                            .responseSchema(Schema.schema("ApiResponse"))
+                            .build()
+                        )
+                    )
+                );
+
+            then(problemService).should().getProblem(anyLong(), any());
+        }
+
+        @Test
+        @DisplayName("실패 - 지원하지 않는 언어인 경우")
+        void 실패_지원하지_않는_언어인_경우() throws Exception {
+            // given
+            willThrow(new CustomException(ErrorCode.LANGUAGE_NOT_SUPPORTED)).given(problemService).getProblem(anyLong(), any());
+
+            // when & then
+            ResultActions actions = mockMvc.perform(RestDocumentationRequestBuilders.get("/api/v1/problems/{problemId}", problemId)
+                .param("language", language)
+                .contentType(MediaType.APPLICATION_JSON)
+            );
+
+            actions
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.status").value(Status.ERROR.name()))
+                .andExpect(jsonPath("$.statusCode").value(400))
+                .andExpect(jsonPath("$.message").value(ErrorCode.LANGUAGE_NOT_SUPPORTED.getMessage()))
+                .andExpect(jsonPath("$.errorName").value(ErrorCode.LANGUAGE_NOT_SUPPORTED.getName()))
+                .andExpect(jsonPath("$.errorCode").value(ErrorCode.LANGUAGE_NOT_SUPPORTED.getCode()));
+
+            actions
+                .andDo(document("문제 상세 조회 실패 - 지원하지 않는 언어인 경우",
+                        ApiDocumentUtils.getNoAuthDocumentRequest(),
+                        ApiDocumentUtils.getDocumentResponse(),
+                        resource(ResourceSnippetParameters.builder()
+                            .tag("문제")
+                            .description("문제 상세 조회 API")
+                            .pathParameters(
+                                parameterWithName("problemId").description("문제 ID")
+                            )
+                            .queryParameters(
+                                parameterWithName("language").optional().description("언어")
+                            )
+                            .responseFields(
+                                fieldWithPath("status").description("상태"),
+                                fieldWithPath("statusCode").description("상태 코드"),
+                                fieldWithPath("message").description("메시지"),
+                                fieldWithPath("errorName").description("에러 이름"),
+                                fieldWithPath("errorCode").description("에러 코드"),
+                                fieldWithPath("timestamp").description("타임스탬프")
+                            )
+                            .responseSchema(Schema.schema("ApiResponse"))
+                            .build()
+                        )
+                    )
+                );
+
+            then(problemService).should().getProblem(anyLong(), any());
         }
     }
 }

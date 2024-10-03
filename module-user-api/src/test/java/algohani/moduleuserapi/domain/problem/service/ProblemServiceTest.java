@@ -11,6 +11,7 @@ import static org.mockito.Mockito.never;
 import algohani.common.dto.PageResponseDto;
 import algohani.common.entity.FavoriteProblem;
 import algohani.common.entity.Problem;
+import algohani.common.enums.LanguageType;
 import algohani.common.exception.CustomException;
 import algohani.moduleuserapi.domain.auth.repository.MemberRepository;
 import algohani.moduleuserapi.domain.problem.dto.response.ProblemResDto;
@@ -208,6 +209,64 @@ class ProblemServiceTest {
             then(problemRepository).should().existsById(problemId);
             then(favoriteProblemRepository).should(never()).findByMemberIdAndProblemProblemId(any(), any());
             then(favoriteProblemRepository).should(never()).delete(any());
+        }
+    }
+
+    @Nested
+    @DisplayName("문제 상세 조회")
+    class 문제_상세_조회 {
+
+        private final long problemId = 1L;
+
+        private final ProblemResDto.RelatedInfo relatedInfo = new ProblemResDto.RelatedInfo("title", "description", "restriction", "ioExample", "ioDescription", Collections.singletonList(LanguageType.JAVA), true);
+
+        @Test
+        @DisplayName("성공")
+        void 성공() {
+            // given
+            final String language = "java";
+
+            given(problemRepository.findProblemWithRelatedInfo(problemId)).willReturn(Optional.of(relatedInfo));
+
+            // when
+            ProblemResDto.RelatedInfo result = problemService.getProblem(problemId, language);
+
+            // then
+            assertThat(result).isNotNull();
+
+            then(problemRepository).should().findProblemWithRelatedInfo(problemId);
+        }
+
+        @Test
+        @DisplayName("실패 - 문제가 존재하지 않는 경우")
+        void 실패_문제가_존재하지_않는_경우() {
+            // given
+            final String language = "java";
+
+            given(problemRepository.findProblemWithRelatedInfo(problemId)).willReturn(Optional.empty());
+
+            // when & then
+            assertThatThrownBy(() -> problemService.getProblem(problemId, language))
+                .isInstanceOf(CustomException.class)
+                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.PROBLEM_NOT_FOUND);
+
+            then(problemRepository).should().findProblemWithRelatedInfo(problemId);
+        }
+
+        @Test
+        @DisplayName("실패 - 지원하지 않는 언어인 경우")
+        void 실패_지원하지_않는_언어인_경우() {
+            // given
+            final String language = "python";
+
+            given(problemRepository.findProblemWithRelatedInfo(problemId)).willReturn(Optional.of(relatedInfo));
+
+            // when & then
+            assertThatThrownBy(() -> problemService.getProblem(problemId, language))
+                .isInstanceOf(CustomException.class)
+                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.LANGUAGE_NOT_SUPPORTED);
+
+            then(problemRepository).should().findProblemWithRelatedInfo(problemId);
         }
     }
 }
