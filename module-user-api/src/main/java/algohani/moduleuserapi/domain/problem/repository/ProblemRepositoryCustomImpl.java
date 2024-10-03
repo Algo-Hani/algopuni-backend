@@ -3,6 +3,7 @@ package algohani.moduleuserapi.domain.problem.repository;
 import static algohani.common.entity.QFavoriteProblem.favoriteProblem;
 import static algohani.common.entity.QLanguage.language;
 import static algohani.common.entity.QProblem.problem;
+import static com.querydsl.core.group.GroupBy.groupBy;
 
 import algohani.common.dto.PageResponseDto;
 import algohani.common.entity.Problem;
@@ -12,6 +13,7 @@ import algohani.moduleuserapi.domain.problem.dto.request.ProblemReqDto;
 import algohani.moduleuserapi.domain.problem.dto.response.ProblemResDto;
 import algohani.moduleuserapi.global.utils.SecurityUtils;
 import com.querydsl.core.BooleanBuilder;
+import com.querydsl.core.group.GroupBy;
 import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.core.types.dsl.Expressions;
@@ -45,6 +47,31 @@ public class ProblemRepositoryCustomImpl implements ProblemRepositoryCustom {
                     .and(problem.useFlag.eq(YNFlag.Y)))
                 .fetchOne()
         );
+    }
+
+    @Override
+    public Optional<ProblemResDto.RelatedInfo> findProblemWithRelatedInfo(final long problemId) {
+        List<ProblemResDto.RelatedInfo> result = queryFactory.from(problem)
+            .innerJoin(problem.languages, language)
+            .where(problem.problemId.eq(problemId)
+                .and(problem.useFlag.eq(YNFlag.Y))
+            )
+            .transform(
+                groupBy(problem.problemId).list(
+                    Projections.constructor(
+                        ProblemResDto.RelatedInfo.class,
+                        problem.title,
+                        problem.description,
+                        problem.restriction,
+                        problem.ioExample,
+                        problem.ioDescription,
+                        GroupBy.list(language.languageType),
+                        getIsFavoriteExpression()
+                    )
+                )
+            );
+
+        return CollectionUtils.isEmpty(result) ? Optional.empty() : Optional.of(result.get(0));
     }
 
     /**

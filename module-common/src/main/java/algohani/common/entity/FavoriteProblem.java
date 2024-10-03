@@ -1,6 +1,7 @@
 package algohani.common.entity;
 
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -25,12 +26,12 @@ public class FavoriteProblem {
     @Comment("즐겨찾기한 문제 정보 IDX")
     private Long favoriteProblemId;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "id")
     @Comment("아이디")
     private Member member;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "problem_id")
     @Comment("문제 정보 IDX")
     private Problem problem;

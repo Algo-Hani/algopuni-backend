@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
@@ -48,5 +49,13 @@ public class ProblemController {
         problemService.removeFavoriteProblem(problemId);
 
         return ApiResponse.success(ResponseText.REMOVE_FAVORITE_SUCCESS);
+    }
+
+    /**
+     * 문제 상세 조회 API
+     */
+    @GetMapping("/{problemId}")
+    public ResponseEntity<ApiResponse<ProblemResDto.RelatedInfo>> getProblem(@PathVariable long problemId, @RequestParam(required = false) String language) {
+        return ApiResponse.success(problemService.getProblem(problemId, language));
     }
 }
