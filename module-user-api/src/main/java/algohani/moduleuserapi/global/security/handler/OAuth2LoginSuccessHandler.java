@@ -1,8 +1,7 @@
 package algohani.moduleuserapi.global.security.handler;
 
-import algohani.common.enums.TokenName;
-import algohani.common.utils.CookieUtils;
 import algohani.moduleuserapi.domain.auth.dto.response.TokenDto;
+import algohani.moduleuserapi.domain.auth.dto.response.TokenDto.AccessTokenDto;
 import algohani.moduleuserapi.domain.auth.dto.response.TokenDto.RefreshTokenDto;
 import algohani.moduleuserapi.global.security.jwt.JwtTokenProvider;
 import jakarta.servlet.http.HttpServletRequest;
@@ -36,15 +35,19 @@ public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication) throws IOException {
         TokenDto tokenDto = jwtTokenProvider.generateToken(authentication);
+        AccessTokenDto accessTokenDto = tokenDto.accessToken();
         RefreshTokenDto refreshTokenDto = tokenDto.refreshToken();
 
         // Refresh Token을 Redis에 저장
         ValueOperations<String, String> valueOperations = redisTemplate.opsForValue();
-        valueOperations.set(authentication.getName(), refreshTokenDto.refreshToken(), refreshTokenDto.getExpiresInSecond(), TimeUnit.SECONDS);
+        valueOperations.set(refreshTokenDto.token(), authentication.getName(), refreshTokenDto.getExpiresInSecond(), TimeUnit.SECONDS);
 
-        // Refresh Token을 쿠키에 담아서 전달
-        CookieUtils.createCookie(TokenName.USER_REFRESH_TOKEN.name(), refreshTokenDto.refreshToken(), refreshTokenDto.getExpiresInSecond(), response);
-
-        response.sendRedirect(redirectUrl + "/oauth2-login-success?accessToken=" + tokenDto.accessToken().accessToken());
+        response.sendRedirect(
+            redirectUrl +
+                "/oauth2-login-success?token=" + accessTokenDto.token() +
+                "&accessTokenExpiresIn=" + accessTokenDto.expiresIn() +
+                "&token=" + refreshTokenDto.token() +
+                "&refreshTokenExpiresIn=" + refreshTokenDto.expiresIn()
+        );
     }
 }

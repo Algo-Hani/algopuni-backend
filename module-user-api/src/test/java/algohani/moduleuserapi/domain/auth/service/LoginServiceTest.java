@@ -6,13 +6,10 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
 import static org.mockito.BDDMockito.willDoNothing;
-import static org.mockito.Mockito.mockStatic;
 
 import algohani.common.entity.Member;
 import algohani.common.enums.SocialType;
-import algohani.common.enums.TokenName;
 import algohani.common.exception.CustomException;
-import algohani.common.utils.CookieUtils;
 import algohani.moduleuserapi.domain.auth.dto.request.LoginReqDto;
 import algohani.moduleuserapi.domain.auth.dto.response.TokenDto;
 import algohani.moduleuserapi.domain.auth.dto.response.TokenDto.AccessTokenDto;
@@ -29,7 +26,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.ValueOperations;
@@ -75,12 +71,12 @@ class LoginServiceTest {
             .build();
 
         private final AccessTokenDto accessTokenDto = AccessTokenDto.builder()
-            .accessToken("accessToken")
+            .token("token")
             .expiresIn(tokenExpiresIn)
             .build();
 
         private final RefreshTokenDto refreshTokenDto = RefreshTokenDto.builder()
-            .refreshToken("refreshToken")
+            .token("token")
             .expiresIn(tokenExpiresIn)
             .build();
 
@@ -100,21 +96,15 @@ class LoginServiceTest {
             willDoNothing().given(valueOperations).set(any(), any(), any(Long.class), any());
 
             // when
-            try (MockedStatic<CookieUtils> util = mockStatic(CookieUtils.class)) {
-                CookieUtils.createCookie(TokenName.USER_REFRESH_TOKEN.name(), refreshTokenDto.refreshToken(), refreshTokenDto.getExpiresInSecond(), new MockHttpServletResponse());
-
-                AccessTokenDto result = loginService.login(loginReqDto, response);
-
-                assertThat(result).isNotNull().isEqualTo(accessTokenDto);
-                then(memberRepository).should().findById(any());
-                then(passwordEncoder).should().matches(any(), any());
-                then(jwtTokenProvider).should().generateToken(any());
-                then(redisTemplate).should().opsForValue();
-                then(valueOperations).should().set(any(), any(), any(Long.class), any());
-            }
+            TokenDto result = loginService.login(loginReqDto);
 
             // then
-
+            assertThat(result).isNotNull().isEqualTo(tokenDto);
+            then(memberRepository).should().findById(any());
+            then(passwordEncoder).should().matches(any(), any());
+            then(jwtTokenProvider).should().generateToken(any());
+            then(redisTemplate).should().opsForValue();
+            then(valueOperations).should().set(any(), any(), any(Long.class), any());
         }
 
         @Test
@@ -124,7 +114,7 @@ class LoginServiceTest {
             given(memberRepository.findById(any())).willReturn(Optional.empty());
 
             // when & then
-            assertThatThrownBy(() -> loginService.login(loginReqDto, response))
+            assertThatThrownBy(() -> loginService.login(loginReqDto))
                 .isInstanceOf(CustomException.class)
                 .hasFieldOrPropertyWithValue("errorCode", ErrorCode.LOGIN_FAILED);
 
@@ -143,7 +133,7 @@ class LoginServiceTest {
             given(passwordEncoder.matches(any(), any())).willReturn(false);
 
             // when & then
-            assertThatThrownBy(() -> loginService.login(loginReqDto, response))
+            assertThatThrownBy(() -> loginService.login(loginReqDto))
                 .isInstanceOf(CustomException.class)
                 .hasFieldOrPropertyWithValue("errorCode", ErrorCode.LOGIN_FAILED);
 
@@ -168,7 +158,7 @@ class LoginServiceTest {
             given(passwordEncoder.matches(any(), any())).willReturn(true);
 
             // when & then
-            assertThatThrownBy(() -> loginService.login(loginReqDto, response))
+            assertThatThrownBy(() -> loginService.login(loginReqDto))
                 .isInstanceOf(CustomException.class)
                 .hasFieldOrPropertyWithValue("errorCode", ErrorCode.LOGIN_FAILED);
 

@@ -2,17 +2,13 @@ package algohani.moduleuserapi.domain.auth.service;
 
 import algohani.common.entity.Member;
 import algohani.common.enums.Role;
-import algohani.common.enums.TokenName;
 import algohani.common.exception.CustomException;
-import algohani.common.utils.CookieUtils;
 import algohani.moduleuserapi.domain.auth.dto.request.LoginReqDto;
 import algohani.moduleuserapi.domain.auth.dto.response.TokenDto;
-import algohani.moduleuserapi.domain.auth.dto.response.TokenDto.AccessTokenDto;
 import algohani.moduleuserapi.domain.auth.dto.response.TokenDto.RefreshTokenDto;
 import algohani.moduleuserapi.domain.auth.repository.MemberRepository;
 import algohani.moduleuserapi.global.exception.ErrorCode;
 import algohani.moduleuserapi.global.security.jwt.JwtTokenProvider;
-import jakarta.servlet.http.HttpServletResponse;
 import java.util.Collections;
 import java.util.concurrent.TimeUnit;
 import lombok.RequiredArgsConstructor;
@@ -37,7 +33,7 @@ public class LoginService {
     private final RedisTemplate<String, String> redisTemplate;
 
     @Transactional(readOnly = true)
-    public AccessTokenDto login(LoginReqDto loginReqDto, HttpServletResponse response) {
+    public TokenDto login(LoginReqDto loginReqDto) {
         // ID로 Member 조회
         Member savedMember = memberRepository.findById(loginReqDto.id())
             .orElseThrow(() -> new CustomException(ErrorCode.LOGIN_FAILED));
@@ -65,11 +61,8 @@ public class LoginService {
         // Refresh Token을 Redis에 저장
         RefreshTokenDto refreshTokenDto = tokenDto.refreshToken();
         ValueOperations<String, String> valueOperations = redisTemplate.opsForValue();
-        valueOperations.set(savedMember.getId(), refreshTokenDto.refreshToken(), refreshTokenDto.expiresIn(), TimeUnit.MILLISECONDS);
+        valueOperations.set(refreshTokenDto.token(), savedMember.getId(), refreshTokenDto.expiresIn(), TimeUnit.MILLISECONDS);
 
-        // Refresh Token을 쿠키에 담아서 전달
-        CookieUtils.createCookie(TokenName.USER_REFRESH_TOKEN.name(), refreshTokenDto.refreshToken(), refreshTokenDto.getExpiresInSecond(), response);
-
-        return tokenDto.accessToken();
+        return tokenDto;
     }
 }
