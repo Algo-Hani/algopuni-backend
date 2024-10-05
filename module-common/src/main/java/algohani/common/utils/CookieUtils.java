@@ -25,7 +25,6 @@ public class CookieUtils {
         ResponseCookie cookie = ResponseCookie.from(cookieName, value)
             .httpOnly(true)
             .secure(true)
-            .domain(isProd() ? "api.user.algopuni.site" : "localhost")
             .sameSite("None")
             .maxAge(maxAge)
             .path("/")
@@ -63,7 +62,6 @@ public class CookieUtils {
             .httpOnly(true)
             .secure(true)
             .sameSite("None")
-            .domain(isProd() ? "api.user.algopuni.site" : "localhost")
             .maxAge(0)
             .path("/")
             .build();

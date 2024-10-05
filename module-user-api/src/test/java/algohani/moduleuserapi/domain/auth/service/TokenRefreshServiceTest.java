@@ -52,7 +52,7 @@ class TokenRefreshServiceTest {
             request.setCookies(new Cookie(TokenName.USER_REFRESH_TOKEN.name(), TokenName.USER_REFRESH_TOKEN.name()));
 
             AccessTokenDto accessTokenDto = AccessTokenDto.builder()
-                .accessToken("accessToken")
+                .token("token")
                 .build();
 
             given(redisTemplate.opsForValue()).willReturn(valueOperations);

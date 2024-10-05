@@ -18,7 +18,9 @@ import algohani.common.exception.CustomException;
 import algohani.moduleuserapi.domain.auth.dto.request.EmailCodeReqDto;
 import algohani.moduleuserapi.domain.auth.dto.request.LoginReqDto;
 import algohani.moduleuserapi.domain.auth.dto.request.SignUpReqDto;
+import algohani.moduleuserapi.domain.auth.dto.response.TokenDto;
 import algohani.moduleuserapi.domain.auth.dto.response.TokenDto.AccessTokenDto;
+import algohani.moduleuserapi.domain.auth.dto.response.TokenDto.RefreshTokenDto;
 import algohani.moduleuserapi.domain.auth.service.LoginService;
 import algohani.moduleuserapi.domain.auth.service.LogoutService;
 import algohani.moduleuserapi.domain.auth.service.SignUpService;
@@ -30,7 +32,6 @@ import com.epages.restdocs.apispec.ConstrainedFields;
 import com.epages.restdocs.apispec.ResourceSnippetParameters;
 import com.epages.restdocs.apispec.Schema;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import jakarta.servlet.http.HttpServletResponse;
 import java.util.Date;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -613,8 +614,18 @@ class AuthControllerTest {
             .build();
 
         private final AccessTokenDto accessTokenDto = AccessTokenDto.builder()
-            .accessToken("accessToken")
+            .token("token")
             .expiresIn(new Date().getTime() + 1000 * 60 * 60)
+            .build();
+
+        private final RefreshTokenDto refreshTokenDto = RefreshTokenDto.builder()
+            .token("token")
+            .expiresIn(new Date().getTime() + 1000 * 60 * 60)
+            .build();
+
+        private final TokenDto tokenDto = TokenDto.builder()
+            .accessToken(accessTokenDto)
+            .refreshToken(refreshTokenDto)
             .build();
 
         private final ConstrainedFields fields = new ConstrainedFields(LoginReqDto.class);
@@ -623,7 +634,7 @@ class AuthControllerTest {
         @DisplayName("성공")
         void 성공() throws Exception {
             // given
-            given(loginService.login(any(LoginReqDto.class), any(HttpServletResponse.class))).willReturn(accessTokenDto);
+            given(loginService.login(any(LoginReqDto.class))).willReturn(tokenDto);
 
             // when & then
             ResultActions actions = mockMvc.perform(RestDocumentationRequestBuilders.post("/api/v1/auth/login")
@@ -637,8 +648,10 @@ class AuthControllerTest {
                 .andExpect(jsonPath("$.status").value(Status.SUCCESS.name()))
                 .andExpect(jsonPath("$.statusCode").value(200))
                 .andExpect(jsonPath("$.message").value(ResponseText.LOGIN_SUCCESS.getMessage()))
-                .andExpect(jsonPath("$.data.accessToken").value(accessTokenDto.accessToken()))
-                .andExpect(jsonPath("$.data.expiresIn").value(accessTokenDto.expiresIn()));
+                .andExpect(jsonPath("$.data.accessToken.token").value(accessTokenDto.token()))
+                .andExpect(jsonPath("$.data.accessToken.expiresIn").value(accessTokenDto.expiresIn()))
+                .andExpect(jsonPath("$.data.refreshToken.token").value(refreshTokenDto.token()))
+                .andExpect(jsonPath("$.data.refreshToken.expiresIn").value(refreshTokenDto.expiresIn()));
 
             actions
                 .andDo(document("로그인 성공",
@@ -656,8 +669,10 @@ class AuthControllerTest {
                                 fields.withPath("statusCode").description("상태 코드"),
                                 fields.withPath("message").description("메시지"),
                                 fields.withPath("timestamp").description("타임스탬프"),
-                                fields.withPath("data.accessToken").description("액세스 토큰"),
-                                fields.withPath("data.expiresIn").description("만료 시간")
+                                fields.withPath("data.accessToken.token").description("액세스 토큰"),
+                                fields.withPath("data.accessToken.expiresIn").description("액세스 토큰 만료 시간"),
+                                fields.withPath("data.refreshToken.token").description("리프레시 토큰"),
+                                fields.withPath("data.refreshToken.expiresIn").description("리프레시 토큰 만료 시간")
                             )
                             .requestSchema(Schema.schema("LoginReqDto"))
                             .responseSchema(Schema.schema("ApiResponse"))
@@ -666,14 +681,14 @@ class AuthControllerTest {
                     )
                 );
 
-            then(loginService).should().login(any(LoginReqDto.class), any(HttpServletResponse.class));
+            then(loginService).should().login(any(LoginReqDto.class));
         }
 
         @Test
         @DisplayName("실패 - 아이디가 일치하지 않는 경우")
         void 실패_아이디가_일치하지_않는_경우() throws Exception {
             // given
-            willThrow(new CustomException(ErrorCode.LOGIN_FAILED)).given(loginService).login(any(LoginReqDto.class), any(HttpServletResponse.class));
+            willThrow(new CustomException(ErrorCode.LOGIN_FAILED)).given(loginService).login(any(LoginReqDto.class));
 
             // when & then
             ResultActions actions = mockMvc.perform(RestDocumentationRequestBuilders.post("/api/v1/auth/login")
@@ -716,14 +731,14 @@ class AuthControllerTest {
                     )
                 );
 
-            then(loginService).should().login(any(LoginReqDto.class), any(HttpServletResponse.class));
+            then(loginService).should().login(any(LoginReqDto.class));
         }
 
         @Test
         @DisplayName("실패 - 비밀번호가 일치하지 않는 경우")
         void 실패_비밀번호가_일치하지_않는_경우() throws Exception {
             // given
-            willThrow(new CustomException(ErrorCode.LOGIN_FAILED)).given(loginService).login(any(LoginReqDto.class), any(HttpServletResponse.class));
+            willThrow(new CustomException(ErrorCode.LOGIN_FAILED)).given(loginService).login(any(LoginReqDto.class));
 
             // when & then
             ResultActions actions = mockMvc.perform(RestDocumentationRequestBuilders.post("/api/v1/auth/login")
@@ -766,14 +781,14 @@ class AuthControllerTest {
                     )
                 );
 
-            then(loginService).should().login(any(LoginReqDto.class), any(HttpServletResponse.class));
+            then(loginService).should().login(any(LoginReqDto.class));
         }
 
         @Test
         @DisplayName("실패 - 소셜 로그인 사용자인 경우")
         void 실패_소셜_로그인_사용자인_경우() throws Exception {
             // given
-            willThrow(new CustomException(ErrorCode.LOGIN_FAILED)).given(loginService).login(any(LoginReqDto.class), any(HttpServletResponse.class));
+            willThrow(new CustomException(ErrorCode.LOGIN_FAILED)).given(loginService).login(any(LoginReqDto.class));
 
             // when & then
             ResultActions actions = mockMvc.perform(RestDocumentationRequestBuilders.post("/api/v1/auth/login")
@@ -816,7 +831,7 @@ class AuthControllerTest {
                     )
                 );
 
-            then(loginService).should().login(any(LoginReqDto.class), any(HttpServletResponse.class));
+            then(loginService).should().login(any(LoginReqDto.class));
         }
     }
 
@@ -875,7 +890,7 @@ class AuthControllerTest {
         void 성공() throws Exception {
             // given
             AccessTokenDto accessTokenDto = AccessTokenDto.builder()
-                .accessToken("accessToken")
+                .token("token")
                 .expiresIn(new Date().getTime() + 1000 * 60 * 60)
                 .build();
 
@@ -892,7 +907,7 @@ class AuthControllerTest {
                 .andExpect(jsonPath("$.status").value(Status.SUCCESS.name()))
                 .andExpect(jsonPath("$.statusCode").value(200))
                 .andExpect(jsonPath("$.message").value(ResponseText.ACCESS_TOKEN_REFRESHED.getMessage()))
-                .andExpect(jsonPath("$.data.accessToken").value(accessTokenDto.accessToken()))
+                .andExpect(jsonPath("$.data.token").value(accessTokenDto.token()))
                 .andExpect(jsonPath("$.data.expiresIn").value(accessTokenDto.expiresIn()));
 
             actions
@@ -907,7 +922,7 @@ class AuthControllerTest {
                                 fieldWithPath("statusCode").description("상태 코드"),
                                 fieldWithPath("message").description("메시지"),
                                 fieldWithPath("timestamp").description("타임스탬프"),
-                                fieldWithPath("data.accessToken").description("액세스 토큰"),
+                                fieldWithPath("data.token").description("액세스 토큰"),
                                 fieldWithPath("data.expiresIn").description("만료 시간")
                             )
                             .responseSchema(Schema.schema("ApiResponse"))

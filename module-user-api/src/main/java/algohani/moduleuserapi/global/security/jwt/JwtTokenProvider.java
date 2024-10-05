@@ -113,7 +113,7 @@ public class JwtTokenProvider {
             .compact();
 
         return AccessTokenDto.builder()
-            .accessToken(accessToken)
+            .token(accessToken)
             .expiresIn(accessTokenExpiresIn.getTime())
             .build();
     }
@@ -134,7 +134,7 @@ public class JwtTokenProvider {
             .compact();
 
         return RefreshTokenDto.builder()
-            .refreshToken(refreshToken)
+            .token(refreshToken)
             .expiresIn(refreshTokenExpiresIn.getTime())
             .build();
     }

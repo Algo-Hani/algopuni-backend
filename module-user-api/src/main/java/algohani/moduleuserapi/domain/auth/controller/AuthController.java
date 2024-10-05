@@ -4,6 +4,7 @@ import algohani.common.dto.ApiResponse;
 import algohani.moduleuserapi.domain.auth.dto.request.EmailCodeReqDto;
 import algohani.moduleuserapi.domain.auth.dto.request.LoginReqDto;
 import algohani.moduleuserapi.domain.auth.dto.request.SignUpReqDto;
+import algohani.moduleuserapi.domain.auth.dto.response.TokenDto;
 import algohani.moduleuserapi.domain.auth.dto.response.TokenDto.AccessTokenDto;
 import algohani.moduleuserapi.domain.auth.service.LoginService;
 import algohani.moduleuserapi.domain.auth.service.LogoutService;
@@ -67,10 +68,10 @@ public class AuthController {
      * 로그인 API
      */
     @PostMapping("/login")
-    public ResponseEntity<ApiResponse<AccessTokenDto>> login(@Valid @RequestBody LoginReqDto loginReqDto, HttpServletResponse response) {
-        AccessTokenDto accessTokenDto = loginService.login(loginReqDto, response);
+    public ResponseEntity<ApiResponse<TokenDto>> login(@Valid @RequestBody LoginReqDto loginReqDto) {
+        TokenDto tokenDto = loginService.login(loginReqDto);
 
-        return ApiResponse.success(ResponseText.LOGIN_SUCCESS, accessTokenDto);
+        return ApiResponse.success(ResponseText.LOGIN_SUCCESS, tokenDto);
     }
 
     /**
