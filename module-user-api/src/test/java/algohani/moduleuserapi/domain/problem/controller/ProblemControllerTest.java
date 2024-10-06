@@ -17,6 +17,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import algohani.common.dto.ApiResponse.Status;
 import algohani.common.dto.PageResponseDto;
 import algohani.common.enums.LanguageType;
+import algohani.common.enums.ParameterType;
 import algohani.common.exception.CustomException;
 import algohani.moduleuserapi.domain.problem.dto.request.ProblemReqDto;
 import algohani.moduleuserapi.domain.problem.dto.response.ProblemResDto;
@@ -341,7 +342,8 @@ class ProblemControllerTest {
         @DisplayName("성공")
         void 성공() throws Exception {
             // given
-            ProblemResDto.RelatedInfo resDto = new ProblemResDto.RelatedInfo("title", "description", "restriction", "ioExample", "ioDescription", Collections.singletonList(LanguageType.JAVA), true);
+            ProblemResDto.RelatedInfo resDto = new ProblemResDto.RelatedInfo("title", "description", "restriction", "ioExample", "ioDescription", ParameterType.INT, Collections.singletonList(LanguageType.JAVA), true);
+            resDto.initSampleCode("sampleCode");
 
             given(problemService.getProblem(anyLong(), any())).willReturn(resDto);
 
@@ -361,7 +363,8 @@ class ProblemControllerTest {
                 .andExpect(jsonPath("$.data.ioExample").value("ioExample"))
                 .andExpect(jsonPath("$.data.ioDescription").value("ioDescription"))
                 .andExpect(jsonPath("$.data.languageTypes").isArray())
-                .andExpect(jsonPath("$.data.isFavorite").value(true));
+                .andExpect(jsonPath("$.data.sampleCode").value("sampleCode"))
+                .andExpect(jsonPath("$.data.favorite").value(true));
 
             actions
                 .andDo(document("문제 상세 조회",
@@ -386,7 +389,8 @@ class ProblemControllerTest {
                                 fieldWithPath("data.ioExample").description("입출력 예시"),
                                 fieldWithPath("data.ioDescription").description("입출력 설명"),
                                 fieldWithPath("data.languageTypes").description("언어 타입"),
-                                fieldWithPath("data.isFavorite").description("즐겨찾기 여부")
+                                fieldWithPath("data.sampleCode").description("샘플 코드"),
+                                fieldWithPath("data.favorite").description("즐겨찾기 여부")
                             )
                             .responseSchema(Schema.schema("ProblemResDto.RelatedInfo"))
                             .build()

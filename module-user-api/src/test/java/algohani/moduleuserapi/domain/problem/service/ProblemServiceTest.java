@@ -10,17 +10,21 @@ import static org.mockito.Mockito.never;
 
 import algohani.common.dto.PageResponseDto;
 import algohani.common.entity.FavoriteProblem;
+import algohani.common.entity.Parameter;
 import algohani.common.entity.Problem;
 import algohani.common.enums.LanguageType;
+import algohani.common.enums.ParameterType;
 import algohani.common.exception.CustomException;
 import algohani.moduleuserapi.domain.auth.repository.MemberRepository;
 import algohani.moduleuserapi.domain.problem.dto.response.ProblemResDto;
 import algohani.moduleuserapi.domain.problem.dto.response.ProblemResDto.Search;
 import algohani.moduleuserapi.domain.problem.repository.FavoriteProblemRepository;
+import algohani.moduleuserapi.domain.problem.repository.ParameterRepository;
 import algohani.moduleuserapi.domain.problem.repository.ProblemRepository;
 import algohani.moduleuserapi.global.exception.ErrorCode;
 import algohani.moduleuserapi.global.utils.SecurityUtils;
 import java.util.Collections;
+import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -42,6 +46,9 @@ class ProblemServiceTest {
 
     @Mock
     private MemberRepository memberRepository;
+
+    @Mock
+    private ParameterRepository parameterRepository;
 
     @InjectMocks
     private ProblemService problemService;
@@ -218,7 +225,11 @@ class ProblemServiceTest {
 
         private final long problemId = 1L;
 
-        private final ProblemResDto.RelatedInfo relatedInfo = new ProblemResDto.RelatedInfo("title", "description", "restriction", "ioExample", "ioDescription", Collections.singletonList(LanguageType.JAVA), true);
+        private final ProblemResDto.RelatedInfo relatedInfo = new ProblemResDto.RelatedInfo("title", "description", "restriction", "ioExample", "ioDescription", ParameterType.INT, Collections.singletonList(LanguageType.JAVA), true);
+
+        private final List<Parameter> parameters = Collections.singletonList(Parameter.builder()
+            .parameterType(ParameterType.INT)
+            .build());
 
         @Test
         @DisplayName("성공")
@@ -227,6 +238,7 @@ class ProblemServiceTest {
             final String language = "java";
 
             given(problemRepository.findProblemWithRelatedInfo(problemId)).willReturn(Optional.of(relatedInfo));
+            given(parameterRepository.findByProblemProblemId(problemId)).willReturn(parameters);
 
             // when
             ProblemResDto.RelatedInfo result = problemService.getProblem(problemId, language);

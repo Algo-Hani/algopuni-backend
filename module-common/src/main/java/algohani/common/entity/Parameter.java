@@ -12,6 +12,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import lombok.AccessLevel;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
@@ -37,10 +38,16 @@ public class Parameter extends BaseEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "problem_id", nullable = false, updatable = false)
     @Comment("문제 정보 IDX")
+    @ToString.Exclude
     private Problem problem;
 
     @Column(name = "parameterType", nullable = false)
     @Comment("파라미터 타입")
     @Enumerated(value = EnumType.STRING)
     private ParameterType parameterType;
+
+    @Builder
+    public Parameter(ParameterType parameterType) {
+        this.parameterType = parameterType;
+    }
 }
