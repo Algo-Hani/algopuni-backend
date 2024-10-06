@@ -65,6 +65,7 @@ public class ProblemRepositoryCustomImpl implements ProblemRepositoryCustom {
                         problem.restriction,
                         problem.ioExample,
                         problem.ioDescription,
+                        problem.returnType,
                         GroupBy.list(language.languageType),
                         getIsFavoriteExpression()
                     )

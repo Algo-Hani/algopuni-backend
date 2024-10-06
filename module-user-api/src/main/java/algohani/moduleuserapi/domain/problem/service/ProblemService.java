@@ -3,6 +3,7 @@ package algohani.moduleuserapi.domain.problem.service;
 import algohani.common.dto.PageResponseDto;
 import algohani.common.entity.FavoriteProblem;
 import algohani.common.entity.Member;
+import algohani.common.entity.Parameter;
 import algohani.common.entity.Problem;
 import algohani.common.enums.LanguageType;
 import algohani.common.exception.CustomException;
@@ -10,9 +11,13 @@ import algohani.moduleuserapi.domain.auth.repository.MemberRepository;
 import algohani.moduleuserapi.domain.problem.dto.request.ProblemReqDto;
 import algohani.moduleuserapi.domain.problem.dto.response.ProblemResDto;
 import algohani.moduleuserapi.domain.problem.repository.FavoriteProblemRepository;
+import algohani.moduleuserapi.domain.problem.repository.ParameterRepository;
 import algohani.moduleuserapi.domain.problem.repository.ProblemRepository;
+import algohani.moduleuserapi.domain.problem.service.codegen.CodeGenerator;
+import algohani.moduleuserapi.domain.problem.service.codegen.CodeGeneratorFactory;
 import algohani.moduleuserapi.global.exception.ErrorCode;
 import algohani.moduleuserapi.global.utils.SecurityUtils;
+import java.util.List;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
@@ -28,6 +33,8 @@ public class ProblemService {
     private final FavoriteProblemRepository favoriteProblemRepository;
 
     private final MemberRepository memberRepository;
+
+    private final ParameterRepository parameterRepository;
 
     @Transactional(readOnly = true)
     public PageResponseDto<ProblemResDto.Search> getProblemsWithPaging(ProblemReqDto.Search search) {
@@ -76,25 +83,38 @@ public class ProblemService {
             .orElseThrow(() -> new CustomException(ErrorCode.PROBLEM_NOT_FOUND));
 
         // 언어 지원 여부 확인
-        checkLanguageSupport(language, relatedInfo);
+        LanguageType languageType = getSupportedLanguage(language, relatedInfo);
+
+        // 문제 파라미터 조회
+        List<Parameter> parameters = parameterRepository.findByProblemProblemId(problemId);
+        if (parameters.isEmpty()) {
+            throw new CustomException(ErrorCode.PARAMETER_NOT_FOUND);
+        }
+
+        // 샘플 코드 생성
+        CodeGenerator codeGenerator = CodeGeneratorFactory.getCodeGenerator(languageType);
+        final String sampleCode = codeGenerator.generateCode(relatedInfo.getReturnType(), parameters);
+        relatedInfo.initSampleCode(sampleCode);
 
         return relatedInfo;
     }
 
     /**
-     * 언어 지원 여부 확인
+     * 지원하는 언어인지 확인
      *
      * @param language    언어
-     * @param relatedInfo 문제 상세 정보
+     * @param relatedInfo 문제 정보
+     * @return 지원하는 언어
      */
-    private void checkLanguageSupport(final String language, final ProblemResDto.RelatedInfo relatedInfo) {
-        if (StringUtils.isNotBlank(language)) {
-            LanguageType languageType = LanguageType.of(language);
-
-            // 지원하지 않는 언어인 경우
-            if (!relatedInfo.languageTypes().contains(languageType)) {
-                throw new CustomException(ErrorCode.LANGUAGE_NOT_SUPPORTED);
-            }
+    private LanguageType getSupportedLanguage(final String language, final ProblemResDto.RelatedInfo relatedInfo) {
+        if (StringUtils.isBlank(language)) {
+            return relatedInfo.getLanguageTypes().get(0);
         }
+        
+        LanguageType languageType = LanguageType.of(language);
+        if (!relatedInfo.getLanguageTypes().contains(languageType)) {
+            throw new CustomException(ErrorCode.LANGUAGE_NOT_SUPPORTED);
+        }
+        return languageType;
     }
 }
