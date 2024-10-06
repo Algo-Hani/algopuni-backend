@@ -44,9 +44,9 @@ public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
 
         response.sendRedirect(
             redirectUrl +
-                "/oauth2-login-success?token=" + accessTokenDto.token() +
+                "/oauth2-login-success?accessToken=" + accessTokenDto.token() +
                 "&accessTokenExpiresIn=" + accessTokenDto.expiresIn() +
-                "&token=" + refreshTokenDto.token() +
+                "&refreshToken=" + refreshTokenDto.token() +
                 "&refreshTokenExpiresIn=" + refreshTokenDto.expiresIn()
         );
     }

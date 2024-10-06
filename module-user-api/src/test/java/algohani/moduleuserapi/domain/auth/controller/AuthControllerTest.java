@@ -17,6 +17,7 @@ import algohani.common.dto.ApiResponse.Status;
 import algohani.common.exception.CustomException;
 import algohani.moduleuserapi.domain.auth.dto.request.EmailCodeReqDto;
 import algohani.moduleuserapi.domain.auth.dto.request.LoginReqDto;
+import algohani.moduleuserapi.domain.auth.dto.request.RefreshReqDto;
 import algohani.moduleuserapi.domain.auth.dto.request.SignUpReqDto;
 import algohani.moduleuserapi.domain.auth.dto.response.TokenDto;
 import algohani.moduleuserapi.domain.auth.dto.response.TokenDto.AccessTokenDto;
@@ -885,6 +886,11 @@ class AuthControllerTest {
     @DisplayName("Access Token 갱신 API")
     class Access_Token_갱신_API {
 
+        private final RefreshReqDto refreshReqDto = new RefreshReqDto("refreshToken");
+
+        private final ConstrainedFields fields = new ConstrainedFields(RefreshReqDto.class);
+
+
         @Test
         @DisplayName("성공")
         void 성공() throws Exception {
@@ -900,6 +906,7 @@ class AuthControllerTest {
             ResultActions actions = mockMvc.perform(RestDocumentationRequestBuilders.post("/api/v1/auth/refresh")
                 .contentType(MediaType.APPLICATION_JSON)
                 .with(csrf().asHeader())
+                .content(objectMapper.writeValueAsString(refreshReqDto))
             );
 
             actions
@@ -917,6 +924,9 @@ class AuthControllerTest {
                         resource(ResourceSnippetParameters.builder()
                             .tag("Access Token 갱신")
                             .summary("Access Token 갱신 API")
+                            .requestFields(
+                                fields.withPath("refreshToken").description("리프레시 토큰")
+                            )
                             .responseFields(
                                 fieldWithPath("status").description("상태"),
                                 fieldWithPath("statusCode").description("상태 코드"),
@@ -925,6 +935,7 @@ class AuthControllerTest {
                                 fieldWithPath("data.token").description("액세스 토큰"),
                                 fieldWithPath("data.expiresIn").description("만료 시간")
                             )
+                            .requestSchema(Schema.schema("RefreshReqDto"))
                             .responseSchema(Schema.schema("ApiResponse"))
                             .build()
                         )
@@ -944,6 +955,7 @@ class AuthControllerTest {
             ResultActions actions = mockMvc.perform(RestDocumentationRequestBuilders.post("/api/v1/auth/refresh")
                 .contentType(MediaType.APPLICATION_JSON)
                 .with(csrf().asHeader())
+                .content(objectMapper.writeValueAsString(refreshReqDto))
             );
 
             actions
@@ -961,6 +973,9 @@ class AuthControllerTest {
                         resource(ResourceSnippetParameters.builder()
                             .tag("Access Token 갱신")
                             .summary("Access Token 갱신 API")
+                            .requestFields(
+                                fields.withPath("refreshToken").description("리프레시 토큰")
+                            )
                             .responseFields(
                                 fieldWithPath("status").description("상태"),
                                 fieldWithPath("statusCode").description("상태 코드"),
@@ -969,6 +984,7 @@ class AuthControllerTest {
                                 fieldWithPath("errorCode").description("에러 코드"),
                                 fieldWithPath("timestamp").description("타임스탬프")
                             )
+                            .requestSchema(Schema.schema("RefreshReqDto"))
                             .responseSchema(Schema.schema("ApiResponse"))
                             .build()
                         )
@@ -988,6 +1004,7 @@ class AuthControllerTest {
             ResultActions actions = mockMvc.perform(RestDocumentationRequestBuilders.post("/api/v1/auth/refresh")
                 .contentType(MediaType.APPLICATION_JSON)
                 .with(csrf().asHeader())
+                .content(objectMapper.writeValueAsString(refreshReqDto))
             );
 
             actions
@@ -1005,6 +1022,9 @@ class AuthControllerTest {
                         resource(ResourceSnippetParameters.builder()
                             .tag("Access Token 갱신")
                             .summary("Access Token 갱신 API")
+                            .requestFields(
+                                fields.withPath("refreshToken").description("리프레시 토큰")
+                            )
                             .responseFields(
                                 fieldWithPath("status").description("상태"),
                                 fieldWithPath("statusCode").description("상태 코드"),
@@ -1013,6 +1033,7 @@ class AuthControllerTest {
                                 fieldWithPath("errorCode").description("에러 코드"),
                                 fieldWithPath("timestamp").description("타임스탬프")
                             )
+                            .requestSchema(Schema.schema("RefreshReqDto"))
                             .responseSchema(Schema.schema("ApiResponse"))
                             .build()
                         )

@@ -3,6 +3,7 @@ package algohani.moduleuserapi.domain.auth.controller;
 import algohani.common.dto.ApiResponse;
 import algohani.moduleuserapi.domain.auth.dto.request.EmailCodeReqDto;
 import algohani.moduleuserapi.domain.auth.dto.request.LoginReqDto;
+import algohani.moduleuserapi.domain.auth.dto.request.RefreshReqDto;
 import algohani.moduleuserapi.domain.auth.dto.request.SignUpReqDto;
 import algohani.moduleuserapi.domain.auth.dto.response.TokenDto;
 import algohani.moduleuserapi.domain.auth.dto.response.TokenDto.AccessTokenDto;
@@ -11,7 +12,6 @@ import algohani.moduleuserapi.domain.auth.service.LogoutService;
 import algohani.moduleuserapi.domain.auth.service.SignUpService;
 import algohani.moduleuserapi.domain.auth.service.TokenRefreshService;
 import algohani.moduleuserapi.global.dto.ResponseText;
-import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -88,8 +88,8 @@ public class AuthController {
      * Access Token 갱신 API
      */
     @PostMapping("/refresh")
-    public ResponseEntity<ApiResponse<AccessTokenDto>> refresh(HttpServletRequest request) {
-        AccessTokenDto accessTokenDto = tokenRefreshService.refresh(request);
+    public ResponseEntity<ApiResponse<AccessTokenDto>> refresh(@Valid @RequestBody RefreshReqDto refreshReqDto) {
+        AccessTokenDto accessTokenDto = tokenRefreshService.refresh(refreshReqDto);
 
         return ApiResponse.success(ResponseText.ACCESS_TOKEN_REFRESHED, accessTokenDto);
     }
