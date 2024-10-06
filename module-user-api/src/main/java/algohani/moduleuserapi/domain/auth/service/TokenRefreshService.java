@@ -1,13 +1,11 @@
 package algohani.moduleuserapi.domain.auth.service;
 
 import algohani.common.enums.Role;
-import algohani.common.enums.TokenName;
 import algohani.common.exception.CustomException;
-import algohani.common.utils.CookieUtils;
+import algohani.moduleuserapi.domain.auth.dto.request.RefreshReqDto;
 import algohani.moduleuserapi.domain.auth.dto.response.TokenDto.AccessTokenDto;
 import algohani.moduleuserapi.global.exception.ErrorCode;
 import algohani.moduleuserapi.global.security.jwt.JwtTokenProvider;
-import jakarta.servlet.http.HttpServletRequest;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
@@ -24,10 +22,8 @@ public class TokenRefreshService {
 
     private final JwtTokenProvider jwtTokenProvider;
 
-    public AccessTokenDto refresh(HttpServletRequest request) {
-        final String refreshToken = CookieUtils.getCookieValue(request.getCookies(), TokenName.USER_REFRESH_TOKEN.name());
-
-        return refresh(refreshToken);
+    public AccessTokenDto refresh(RefreshReqDto refreshReqDto) {
+        return refresh(refreshReqDto.refreshToken());
     }
 
     /**
