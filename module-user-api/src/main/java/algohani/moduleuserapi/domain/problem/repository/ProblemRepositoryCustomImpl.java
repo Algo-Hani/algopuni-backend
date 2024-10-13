@@ -3,6 +3,8 @@ package algohani.moduleuserapi.domain.problem.repository;
 import static algohani.common.entity.QFavoriteProblem.favoriteProblem;
 import static algohani.common.entity.QLanguage.language;
 import static algohani.common.entity.QProblem.problem;
+import static algohani.common.entity.QTestCase.testCase;
+import static algohani.common.entity.QTestCaseInput.testCaseInput;
 import static com.querydsl.core.group.GroupBy.groupBy;
 
 import algohani.common.dto.PageResponseDto;
@@ -73,6 +75,15 @@ public class ProblemRepositoryCustomImpl implements ProblemRepositoryCustom {
             );
 
         return CollectionUtils.isEmpty(result) ? Optional.empty() : Optional.of(result.get(0));
+    }
+
+    @Override
+    public Optional<Problem> findProblemWithTestCases(final long problemId) {
+        return Optional.ofNullable(queryFactory.selectFrom(problem)
+            .innerJoin(problem.testCases, testCase).fetchJoin()
+            .innerJoin(testCase.testCaseInputs, testCaseInput).fetchJoin()
+            .where(problem.problemId.eq(problemId))
+            .fetchOne());
     }
 
     /**

@@ -31,6 +31,7 @@ public class PythonCodeGenerator implements CodeGenerator {
             case STRING -> "\"\"";
             case STRING_ARRAY, INT_ARRAY -> "[]";
             case DOUBLE -> "0.0";
+            case INT_2D_ARRAY -> "[[]]";
         };
     }
 }

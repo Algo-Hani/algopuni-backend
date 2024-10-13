@@ -37,6 +37,7 @@ public class TestCaseInput extends BaseEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "test_case_id", nullable = false, updatable = false)
     @Comment("테스트 케이스 정보 IDX")
+    @ToString.Exclude
     private TestCase testCase;
 
     @Column(name = "input", nullable = false, length = 100)

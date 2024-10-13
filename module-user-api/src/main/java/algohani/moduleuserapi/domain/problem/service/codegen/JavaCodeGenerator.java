@@ -56,6 +56,7 @@ public class JavaCodeGenerator implements CodeGenerator {
             case STRING_ARRAY -> "String[] answer = new String[0];\n";
             case INT_ARRAY -> "int[] answer = new int[0];\n";
             case DOUBLE -> "double answer = 0.0;\n";
+            case INT_2D_ARRAY -> "int[][] answer = new int[0][0];\n";
         };
     }
 }

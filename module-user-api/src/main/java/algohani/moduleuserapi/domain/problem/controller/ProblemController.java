@@ -4,14 +4,17 @@ import algohani.common.dto.ApiResponse;
 import algohani.common.dto.PageResponseDto;
 import algohani.moduleuserapi.domain.problem.dto.request.ProblemReqDto;
 import algohani.moduleuserapi.domain.problem.dto.response.ProblemResDto;
+import algohani.moduleuserapi.domain.problem.service.ProblemRunnerService;
 import algohani.moduleuserapi.domain.problem.service.ProblemService;
 import algohani.moduleuserapi.global.dto.ResponseText;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -22,6 +25,8 @@ import org.springframework.web.bind.annotation.RestController;
 public class ProblemController {
 
     private final ProblemService problemService;
+
+    private final ProblemRunnerService problemRunnerService;
 
     /**
      * 문제 목록 조회 API
@@ -57,5 +62,11 @@ public class ProblemController {
     @GetMapping("/{problemId}")
     public ResponseEntity<ApiResponse<ProblemResDto.RelatedInfo>> getProblem(@PathVariable long problemId, @RequestParam(required = false) String language) {
         return ApiResponse.success(problemService.getProblem(problemId, language));
+    }
+
+    @PostMapping("/run")
+    public ResponseEntity<Void> run(@Valid @RequestBody ProblemReqDto.Run dto) throws InterruptedException {
+        problemRunnerService.run(dto);
+        return ResponseEntity.ok().build();
     }
 }

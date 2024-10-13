@@ -14,4 +14,6 @@ public interface ProblemRepositoryCustom {
     Optional<Problem> findUsingById(long problemId);
 
     Optional<ProblemResDto.RelatedInfo> findProblemWithRelatedInfo(long problemId);
+
+    Optional<Problem> findProblemWithTestCases(long problemId);
 }

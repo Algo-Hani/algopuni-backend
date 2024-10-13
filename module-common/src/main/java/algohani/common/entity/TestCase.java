@@ -12,6 +12,8 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
+import java.util.List;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -39,6 +41,7 @@ public class TestCase extends BaseEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "problem_id", nullable = false, updatable = false)
     @Comment("문제 정보 IDX")
+    @ToString.Exclude
     private Problem problem;
 
     @Column(name = "output", nullable = false, length = 100)
@@ -55,4 +58,7 @@ public class TestCase extends BaseEntity {
     @Enumerated(value = EnumType.STRING)
     @ColumnDefault("'N'")
     private YNFlag defaultFlag;
+
+    @OneToMany(mappedBy = "testCase")
+    private List<TestCaseInput> testCaseInputs;
 }

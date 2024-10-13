@@ -10,7 +10,8 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.OneToMany;
-import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
@@ -80,7 +81,10 @@ public class Problem extends BaseEntity {
     private YNFlag useFlag;
 
     @OneToMany(mappedBy = "problem")
-    private List<Language> languages;
+    private final Set<Language> languages = new HashSet<>();
+
+    @OneToMany(mappedBy = "problem")
+    private final Set<TestCase> testCases = new HashSet<>();
 
     @Builder
     public Problem(String title, String description, String restriction, String ioExample, String ioDescription, int timeLimit, int memoryLimit, int level, ParameterType returnType, YNFlag useFlag) {

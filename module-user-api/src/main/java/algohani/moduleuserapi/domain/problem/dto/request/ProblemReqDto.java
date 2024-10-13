@@ -61,4 +61,12 @@ public class ProblemReqDto {
             return (this.getPage() - 1) * this.getSize();
         }
     }
+    
+    public record Run(
+        String sourceCode,
+        Long problemId,
+        LanguageType languageType
+    ) {
+
+    }
 }

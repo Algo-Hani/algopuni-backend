@@ -31,6 +31,9 @@ public enum ErrorCode implements BaseErrorCode {
     LANGUAGE_NOT_SUPPORTED(HttpStatus.BAD_REQUEST, "PR002", "지원하지 않는 언어입니다."),
     PARAMETER_NOT_FOUND(HttpStatus.BAD_REQUEST, "PR003", "문제의 파라미터를 찾을 수 없습니다."),
 
+    // 문제 실행 관련 에러코드
+    EXECUTE_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "PE001", "문제 실행에 실패했습니다."),
+
     // 공통 에러코드
     INTERNAL_SERVER_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "CM001", "서버 내부 에러입니다.");
 
